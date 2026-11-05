@@ -87,3 +87,15 @@ netease-music-gpui/
   sha256sum ~/apps/netease-music-gpui/netease-music-gpui
   # 与新下载的 nightly 解包出来的二进制比对，一致就说明已经是最新版
   ```
+
+- 图标那段里的 `163Music.icns` 从 `raw.githubusercontent.com` 下载，这个域名不一定可达（实测会超时）；
+  拿不到时改走 API 取同一份文件：
+
+  ```bash
+  gh api repos/bougieL/netease-music-gpui/contents/packaging/163Music.icns --jq '.content' | base64 -d > 163Music.icns
+  ```
+
+- 可执行文件没有 `--version` 这类参数，命令行带任何参数运行都会直接拉起 GUI（把 `--version` 当版本查询
+  会在终端挂住并弹出窗口）；判断装的是哪个 nightly 只能用上面的哈希比对。
+- Linux 图标实测不来自 `assets/icons/logo/logo.svg`，icns 里的分块是 `ic07`=128、`ic08`=256、`ic09`=512、
+  `ic10`=1024，另有 `ic11`–`ic14` 更大尺寸，按需取用。

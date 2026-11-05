@@ -29,11 +29,17 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [网易云音乐 GPUI](docs/netease-music-gpui.md) | bougieL/netease-music-gpui | 桌面客户端 |
 | [ChatAgent](docs/chat-agent.md) | bougieL/chat-agent-releases | 桌面客户端 |
 | [Tessera](docs/tessera.md) | bougieL/terminal-manager-releases | 桌面客户端 |
+| [Herdr App](docs/herdr-app.md) | herdrdev/herdr-app | 桌面客户端 |
+| [Herdr CLI](docs/herdr.md) | herdrdev/herdr | CLI |
 | [OpenCode](docs/opencode.md) | anomalyco/opencode | CLI |
 | [Pi](docs/pi.md) | badlogic/pi-mono / earendil-works/pi | CLI |
 | [Codex CLI](docs/codex.md) | openai/codex | CLI |
 | [Claude Code](docs/claude.md) | anthropics/claude-code | CLI |
 | [MMX CLI](docs/mmx-cli.md) | MiniMax-AI/cli | CLI |
+
+个别项目不走 GitHub Release：Herdr App 的二进制发布在自己的分发站
+（https://releases.herdr.dev/app/ ），Herdr CLI 则同时提供安装脚本、brew、mise 等方式，
+细节见各自文档。
 
 ## CLI 工具的安装与更新
 

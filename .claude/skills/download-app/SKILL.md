@@ -13,6 +13,7 @@ description: 安装或更新开源应用与命令行工具。桌面客户端从 
 
 - 先读 `docs/<应用名>.md`（每个应用一个文件，含仓库地址、资产命名规则、安装方式）。
 - 没有对应文档时：用 `gh search repos "<关键词>" --limit 5 --json fullName,stargazersCount,description` 找官方仓库（取 star 最高、描述对得上的那个），然后**新建 `docs/<应用名>.md`**，写清仓库地址和应用介绍即可。
+- 少数项目不走 GitHub Release（自带分发站或 brew cask / 安装脚本），以文档里写的分发方式为准，别硬套 release 资产。
 
 ## 2. 查 Release 与资产
 
@@ -86,7 +87,7 @@ coding agent 这类 CLI（opencode、pi、codex、claude 等）**不走 GitHub R
 ## 1. 找文档
 
 先读 `docs/<应用名>.md`（opencode → `docs/opencode.md`，pi → `docs/pi.md`，codex → `docs/codex.md`，
-claude → `docs/claude.md`）。文档里应该有「安装方式清单」「检测当前安装方式」「更新」三节。
+claude → `docs/claude.md`，herdr → `docs/herdr.md`）。文档里应该有「安装方式清单」「检测当前安装方式」「更新」三节。
 没有就照官方文档补一份。
 
 ## 2. 先检测，再动手

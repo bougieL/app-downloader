@@ -64,3 +64,7 @@ CLI 工具（opencode、pi、codex、claude 等）不走 GitHub Release 下载�
   这类环境变量改掉。
 - 安装位置按平台区分：Linux 命令行工具装 `~/.local/bin`，系统级安装用 deb/rpm；macOS 用 `~/.local/bin` 或 `/Applications`；Windows 走安装器或加进 PATH。
 - 仓库与文档中不出现任何私有地址或内网信息。
+
+## 许可证
+
+[MIT](LICENSE)

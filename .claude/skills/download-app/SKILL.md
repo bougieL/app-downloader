@@ -1,11 +1,13 @@
 ---
 name: download-app
-description: 从 GitHub Release 下载开源应用并安装到本地。当用户要求下载、安装某个开源应用（Clash Verge Rev、CC Switch 等桌面客户端，或 ripgrep、fd 等命令行工具）时使用。
+description: 安装或更新开源应用与命令行工具。桌面客户端从 GitHub Release 下载安装（Clash Verge Rev、CC Switch 等）；CLI 工具（opencode、pi、codex、claude 等 coding agent）按 docs/ 里记录的安装方式处理，更新时先检测原安装方式并沿用它。
 ---
 
 # 从 GitHub 下载应用
 
 用 `gh` + `curl` 完成下载，**不要**额外写下载脚本。
+
+临时文件放项目 `tmp/` 目录。
 
 ## 1. 找仓库
 
@@ -75,3 +77,63 @@ release 提供 `checksums.txt` / `SHA2-256SUMS` 时用 `sha256sum -c` 校验，�
 ## 输出
 
 简短说明：应用名、版本、下载的资产名、安装位置。
+
+# 命令行工具（CLI）
+
+coding agent 这类 CLI（opencode、pi、codex、claude 等）**不走 GitHub Release 下载**，各有各的安装方式
+（安装脚本 / npm / pnpm / bun / brew / winget / 系统包管理器…）。
+
+## 1. 找文档
+
+先读 `docs/<应用名>.md`（opencode → `docs/opencode.md`，pi → `docs/pi.md`，codex → `docs/codex.md`，
+claude → `docs/claude.md`）。文档里应该有「安装方式清单」「检测当前安装方式」「更新」三节。
+没有就照官方文档补一份。
+
+## 2. 先检测，再动手
+
+**已经装过的工具，更新前必须先检测出当初是怎么装的，并且沿用它。**
+
+```bash
+command -v <命令>            # 在不在 PATH 里
+readlink -f "$(command -v <命令>)"   # 真实路径（命令常是软链或包管理器 shim）
+```
+
+判断方式：
+
+- **先查各包管理器的全局列表确认是哪个**（最可靠）：npm / pnpm / bun / yarn / brew / winget / dpkg / rpm。
+- 再看真实路径的**路径片段**（不要看完整目录，默认位置常被环境变量或配置改掉）：
+  比如含 `packages/standalone/` 是 codex 的 standalone 安装，含 `node_modules/@openai/codex/` 是 npm 系。
+- npm / pnpm 装出来的命令在 PATH 上是 shim *脚本*，`readlink -f` 拿到的还是 shim 自己，
+  这种情况下路径片段判据无效，以全局列表为准；也可以从 shim 里挖真实路径：
+
+  ```bash
+  grep -o 'cmd-shim-target=.*' "$(readlink -f "$(command -v <命令>)")"
+  ```
+
+- 多个都命中说明装了多份，用 `which -a <命令>` 看 PATH 上生效的是哪个。
+- 判断不出来就先问用户当初是怎么装的，不要猜。
+- 包管理器本身如果由 mise / asdf 管着，用 `mise exec -- <包管理器> ...` 执行更新，
+  免得更新到别的 node 环境里去。
+
+## 3. 安装
+
+没装过的话，按文档「安装方式清单」里的方式装，并记下选的是哪种。
+
+## 4. 更新
+
+**必须沿用第 2 步检测出来的安装方式，不要换方式。** 换方式的后果：同一个命令名出现两份、
+PATH 上互相覆盖，或者升级命令去改了另一个包管理器的目录。
+
+优先用工具自带的更新命令（`opencode upgrade`、`codex update`、`claude update`、`pi update`）——
+它们内部就是按原方式更新。但它们的自动检测可能和实际情况不符，要和第 2 步的检测结果核对：
+
+- 自带命令检测失败，或它用的方式和检测结果不一致 → 按文档「安装方式清单」里的
+  「沿用该方式的更新命令」手动执行对应那一条。
+- 检测结果里有多个候选 → 问用户，别擅自挑一个。
+
+## 5. 写文档时的路径规矩
+
+- 不要写死本机绝对路径：用 `~` 开头，或用占位符（如 `<codex 家目录>`）。
+- 判定安装方式用**路径片段**，不要写死完整目录（如 `~/.codex/packages/standalone/`），
+  因为默认位置可能通过 `CODEX_HOME`、`PI_CODING_AGENT_DIR` 这类环境变量改过。
+- 文档里出现的具体路径片段要注明它是哪个工具自己约定的，别让人以为是系统标准位置。

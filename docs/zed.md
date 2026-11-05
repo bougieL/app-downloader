@@ -36,3 +36,22 @@ ln -sf ~/.local/zed.app/bin/zed ~/.local/bin/zed
 ### Windows
 
 资产：`Zed-x86_64.exe`、`Zed-aarch64.exe`（安装器）。安装后 `Zed.exe` 所在目录加入 PATH 才能在终端用 `zed`。
+
+## 更新
+
+Linux 上是「整目录替换」：下载新的 `zed-linux-x86_64.tar.gz`，解压出 `zed.app/`，把旧的
+`~/.local/zed.app` 挪走，再把新目录放回原位（`~/.local/bin/zed` 是指向
+`~/.local/zed.app/bin/zed` 的软链，路径不变就不用重连）。换完再补两件事：
+
+```bash
+cp -r ~/.local/zed.app/share/icons/hicolor/* ~/.local/share/icons/hicolor/
+gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor
+update-desktop-database ~/.local/share/applications/
+```
+
+桌面入口 `dev.zed.Zed.desktop` 是之前手动改过 `Exec`/`Icon` 绝对路径的那份，**不会被新版本覆盖**
+（它拷在 `~/.local/share/applications/` 下），但新版本的 `.app` 里那份 `.desktop` 可能又改回相对路径，
+要同步就重新按上面「坑」那段改一遍。
+
+仓库同时发 `vX.Y.Z-pre` 预发布，稳定版用 `releases/latest` 取（`releases` 列表里 pre 排在前面，
+别直接拿列表第一个）。远程服务端 `zed-remote-server` 是独立资产、单独更新，和编辑器版本不必一致。

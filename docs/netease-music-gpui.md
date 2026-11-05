@@ -79,3 +79,11 @@ netease-music-gpui/
 - 没有正式版 release，只有 nightly 预发布；查版本用 `gh api repos/bougieL/netease-music-gpui/releases --jq '.[].tag_name'`，不要用 `releases/latest`（可能拿不到或拿到预发布）。`releases/latest` 在只有预发布时通常会返回预发布，但优先按 tag 列表取最新的那个。
 - Linux 启动时日志会报 `Failed to load bundled font fonts/ibm-plex-sans/...` 和 `fonts/lilex/...`：Linux 产物只带了 `assets/font/dolphin*.ttf`，没打包 GPUI SVG 渲染器要的那两个字体，属于已知噪音，不影响使用（SVG 里的文字会回退到系统字体）。
 - 各平台资产名里的版本号一致（如 `0.1.0`），但 tag 每天一个，不要用资产名里的版本当版本标识。
+
+- Linux 产物里**没有** `build-info.json`（Windows 包才有），所以装的是哪个 nightly 光看文件看不出来。
+  判断是否已是最新，只能拿新旧二进制比哈希：
+
+  ```bash
+  sha256sum ~/apps/netease-music-gpui/netease-music-gpui
+  # 与新下载的 nightly 解包出来的二进制比对，一致就说明已经是最新版
+  ```

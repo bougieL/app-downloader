@@ -33,6 +33,7 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [Pi](docs/pi.md) | badlogic/pi-mono / earendil-works/pi | CLI |
 | [Codex CLI](docs/codex.md) | openai/codex | CLI |
 | [Claude Code](docs/claude.md) | anthropics/claude-code | CLI |
+| [MMX CLI](docs/mmx-cli.md) | MiniMax-AI/cli | CLI |
 
 ## CLI 工具的安装与更新
 

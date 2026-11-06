@@ -8,7 +8,6 @@
 
 面向 coding agent 的终端工作区管理器（Rust 单二进制，无 Electron）。把终端组织成
 workspace / tab / pane，识别 pane 里跑的 agent，并通过 `herdr` CLI 和 socket API 暴露出来。
-桌面客户端是另一个东西，见 [Herdr App](herdr-app.md)。
 
 ## 二进制与版本清单
 

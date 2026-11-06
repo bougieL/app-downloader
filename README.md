@@ -29,7 +29,6 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [网易云音乐 GPUI](docs/netease-music-gpui.md) | bougieL/netease-music-gpui | 桌面客户端 |
 | [ChatAgent](docs/chat-agent.md) | bougieL/chat-agent-releases | 桌面客户端 |
 | [Tessera](docs/tessera.md) | bougieL/terminal-manager-releases | 桌面客户端 |
-| [Herdr App](docs/herdr-app.md) | herdrdev/herdr-app | 桌面客户端 |
 | [Herdr CLI](docs/herdr.md) | herdrdev/herdr | CLI |
 | [OpenCode](docs/opencode.md) | anomalyco/opencode | CLI |
 | [Pi](docs/pi.md) | badlogic/pi-mono / earendil-works/pi | CLI |
@@ -39,9 +38,9 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [微信 Linux 版](docs/wechat.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [飞书 Feishu](docs/feishu.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
+| [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
 
-个别项目不走 GitHub Release：Herdr App 的二进制发布在自己的分发站
-（https://releases.herdr.dev/app/ ），Herdr CLI 则同时提供安装脚本、brew、mise 等方式，
+个别项目不走 GitHub Release：Herdr CLI 同时提供安装脚本、brew、mise 等方式，
 细节见各自文档。
 
 ## CLI 工具的安装与更新

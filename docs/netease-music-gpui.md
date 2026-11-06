@@ -99,3 +99,23 @@ netease-music-gpui/
   会在终端挂住并弹出窗口）；判断装的是哪个 nightly 只能用上面的哈希比对。
 - Linux 图标实测不来自 `assets/icons/logo/logo.svg`，icns 里的分块是 `ic07`=128、`ic08`=256、`ic09`=512、
   `ic10`=1024，另有 `ic11`–`ic14` 更大尺寸，按需取用。
+
+- **启动器里图标显示为空白（缺图标）**：多半是 `netease-music-gpui.desktop` 的 `Icon` 写成了指向不存在
+  文件的绝对路径。例如写成 `Icon=~/apps/netease-music-gpui/assets/icons/netease-music-gpui.png`——
+  产物里根本没有这个 PNG；或写成 `Icon=~/apps/.../assets/icons/logo.svg`——真实的 svg 在
+  `assets/icons/logo/logo.svg`（多一层 `logo/` 子目录），少写一层同样指向空文件，GNOME 都解析不到图标。
+  现象是启动器/dock 上一个默认空白方块，应用本身能正常打开。
+
+  排查用 `cat ~/.local/share/applications/netease-music-gpui.desktop` 看 `Icon` 行，再 `ls` 那个路径确认
+  文件是否真的存在；按图标主题规范装的 PNG 在 `~/.local/share/icons/hicolor/<尺寸>x<尺寸>/apps/` 下。
+
+  解决：**不要写绝对路径**，按上面「图标」一节把 PNG 装进 hicolor 主题后，把 `Icon` 改成纯图标名
+  `netease-music-gpui`（不带路径、不带扩展名），这是 GNOME/freedesktop 最可靠的解析方式。改完刷新缓存：
+
+  ```bash
+  gtk-update-icon-cache -f -t ~/.local/share/icons/hicolor
+  update-desktop-database ~/.local/share/applications/
+  ```
+
+  若仍是旧空白，是 dock/启动器缓存了旧图标，注销重登（X11 下 `Alt+F2` 输入 `r`）或取消收藏再重新收藏即可。
+  确认图标名是否已进缓存：`grep -a -c netease-music-gpui ~/.local/share/icons/hicolor/icon-theme.cache`。

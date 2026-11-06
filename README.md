@@ -36,6 +36,9 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [Codex CLI](docs/codex.md) | openai/codex | CLI |
 | [Claude Code](docs/claude.md) | anthropics/claude-code | CLI |
 | [MMX CLI](docs/mmx-cli.md) | MiniMax-AI/cli | CLI |
+| [微信 Linux 版](docs/wechat.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
+| [飞书 Feishu](docs/feishu.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
+| [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
 
 个别项目不走 GitHub Release：Herdr App 的二进制发布在自己的分发站
 （https://releases.herdr.dev/app/ ），Herdr CLI 则同时提供安装脚本、brew、mise 等方式，

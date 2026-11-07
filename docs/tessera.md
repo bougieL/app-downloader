@@ -47,3 +47,6 @@ macOS 端暂时只有 Apple Silicon（arm64）构建。
 - `latest-linux.yml` 里的 sha512 只对 AppImage 有效，对 `.deb` 无效（记录的大小和哈希都对不上实际发布
   的 deb，估计是打包后重传过的）。校验 deb 别拿 yml 比，直接用 `dpkg-deb -I <包>` 看 Version 对不对。
 - `tessera --version` 不会打印版本号，会直接拉起 GUI 主进程并挂住，要看版本用 `dpkg -l tessera`。
+- **脚本/非交互终端里 `sudo apt install ./xxx.deb` 会刷一串 debconf front-end 警告**
+  （`debconf: 无法初始化前端界面：Readline / Teletype ... 这个界面要求可控制的 tty`），
+  最后回落到 `Noninteractive` 并正常装完。属正常现象，不影响结果，不必因此重跑。

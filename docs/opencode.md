@@ -132,3 +132,23 @@ rm -rf ~/.cache/@opencode-aidesktop-updater
 `dpkg --purge` 会顺带清掉 `/usr/share/applications/` 下的 `ai.opencode.desktop.desktop`
 和 `opencode-desktop.desktop` 两个桌面项，以及 hicolor 图标主题里的图标，
 所以卸载后不需要手动清理菜单图标。
+
+GNOME 软件中心还会残留桌面端的图标缓存与评分缓存，一并清理（只删 opencode 相关文件，
+不要删整个目录，以免误伤其它应用）：
+
+```bash
+find ~/.cache/gnome-software/odrs -maxdepth 1 -iname '*opencode*' -delete
+find ~/.cache/gnome-software/icons -maxdepth 1 -iname '*ai.opencode*' -delete
+```
+
+当初 `dpkg -i` 用的 `.deb` 安装包常留在 `~/下载/`，卸载后确认不再需要可手动删除
+（属于用户文件，脚本不要自动删）。
+
+卸载完验证桌面端已清干净、CLI 仍可用：
+
+```bash
+dpkg -l opencode | grep '^ii'            # 应无输出
+[ -e /opt/OpenCode ]                      # 应不存在
+opencode --version                        # CLI 应仍能输出版本
+pnpm ls -g --depth=0 | grep opencode      # CLI 包应仍在
+```

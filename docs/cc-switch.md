@@ -43,3 +43,7 @@ sudo apt install ./CC-Switch-v<版本>-Linux-x86_64.deb
   ```bash
   dpkg-deb -c <包>.deb > /dev/null && echo OK
   ```
+- **脚本/非交互终端里 `sudo apt install ./xxx.deb` 会刷一串 debconf front-end 警告**
+  （`debconf: 无法初始化前端界面：Readline / Teletype ... 这个界面要求可控制的 tty`），
+  最后回落到 `Noninteractive` 并正常装完。属正常现象，不影响结果，不必因此重跑；
+  装完用 `dpkg -l cc-switch` 核对版本即可。

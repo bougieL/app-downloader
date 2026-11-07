@@ -178,3 +178,11 @@ export CODEBUDDY_CONFIG_DIR="$HOME/.my-codebuddy-config"
   `pnpm outdated -g` 给出的 Latest 可能比 `npm view <包> version` 旧（例：npm 上是 2.181.0，
   pnpm 认为最新是 2.180.0）。想装被挡住的版本，要么等闸门过去，要么把它加进全局
   `~/.local/share/pnpm/global/v*/pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 列表。
+- **精确锁死后只能用 `pnpm add -g <包>@<版本>` 更新，`pnpm update -g` 不动**：本机全局 manifest
+  里写的是 `"@tencent-ai/codebuddy-code": "2.180.0"`（无 `^`），实测 `pnpm outdated -g` 能列出
+  2.181.0 但 `pnpm update -g` 会判定没超范围；改用 `pnpm add -g @tencent-ai/codebuddy-code@2.181.0`
+  成功升级。升级前先 `grep -rh "codebuddy-code" ~/.local/share/pnpm/global/v*/package.json`
+  看是精确版本还是 `^` 范围。
+- **镜像源下载 error (23) 会自动重试成功**：走 npmmirror 镜像时 `pnpm add -g` 可能报
+  `[WARN] GET https://registry.npmmirror.com/@tencent-ai/codebuddy-code/-/codebuddy-code-<版本>.tgz error (23). Will retry in 10 seconds. 2 retries left.`，
+  pnpm 自动重试后仍会装成功，不用中断重跑；看到这行等它跑完核对 `codebuddy --version` 即可。

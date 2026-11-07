@@ -172,8 +172,15 @@ ghostty +list-keybinds      # 列出快捷键
 
 ## 注意
 
-- **本机当前状态**：Debian trixie / amd64，系统包 `1.4.0-0~ppa2`（`/usr/bin/ghostty`），
-  来自社区仓库 `mkasberg/ghostty-ubuntu` 的 `.deb`。2026-11-07 从 `1.3.1-0~ppa2` 升级上来。
+- **本机状态（2026-11-07 核实）**：Debian trixie / amd64，`/usr/bin/ghostty`。此前装的是
+  `1.3.1-6~trixie`（Debian 官方源打包格式，版本号带 `-6~trixie`，不是社区 deb 的 `-0~ppa2`），
+  2026-11-07 直接下载社区仓库 `mkasberg/ghostty-ubuntu` 的
+  `ghostty_1.4.0-0.ppa2_amd64_trixie.deb` 升级到 `1.4.0-0~ppa2`，`ghostty --version` 报 `Ghostty 1.4.0`。
+- **从官方源包升到社区 deb 可以直接覆盖**：`sudo apt install ./ghostty_1.4.0-0.ppa2_amd64_trixie.deb`
+  会把 `1.3.1-6~trixie` 替换掉，postinst 顺带重建 systemd 用户单元软链
+  `/etc/systemd/user/graphical-session.target.wants/app-com.mitchellh.ghostty.service`。
+  升级后菜单里打不开就退出再登录一次，并刷新图标缓存：
+  `sudo gtk-update-icon-cache -f -t /usr/share/icons/hicolor`。
 - **本机的 apt 源里已经没有 ghostty 条目**（`/etc/apt/sources.list.d/` 下没有），
   所以 `apt upgrade` 不会更新 ghostty，`apt-cache policy ghostty` 只能看到已安装版本。
   要用 apt 路线更新，先 `sudo add-apt-repository ppa:mkasberg/ghostty-ubuntu`；

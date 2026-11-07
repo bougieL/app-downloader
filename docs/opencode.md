@@ -100,3 +100,35 @@ pnpm add -g --allow-build=@opencode/cli @opencode/cli
 
 - 同一台机器上装过 1.x 和 2.x 会出现两个 `opencode`，用 `which -a opencode` 查重复安装。
 - 升级前退出正在运行的 opencode 会话。
+
+## 桌面客户端（与 CLI 是两套东西）
+
+OpenCode 另有官方桌面客户端（Electron 应用），和 CLI **是彼此独立的安装物**：
+
+| | 安装方式 | 位置 |
+| --- | --- | --- |
+| 桌面客户端 | GitHub Release 的 `.deb`（`dpkg -i` 安装） | `/opt/OpenCode/`，dpkg 包名 `opencode` |
+| CLI | 见上面的安装方式清单 | `~/.opencode/bin/` 等 |
+
+两者会共用同一批数据目录，卸载时别连 CLI 一起删了：
+
+| 目录 | 归属 | 卸载桌面端时 |
+| --- | --- | --- |
+| `~/.config/opencode/` | CLI（`opencode.json`、`opencode.jsonc`、`skills/`） | **保留** |
+| `~/.local/share/opencode/` | CLI（会话数据库 `opencode.db` 等） | **保留** |
+| `~/.local/state/opencode/` | CLI | **保留** |
+| `~/.cache/opencode/` | CLI | **保留** |
+| `~/.config/ai.opencode.desktop/` | 桌面端（Electron userData） | 删除 |
+| `~/.cache/@opencode-aidesktop-updater/` | 桌面端（自动更新缓存） | 删除 |
+
+彻底卸载桌面端（`sudo` 只用于前两步）：
+
+```bash
+sudo dpkg --purge opencode        # 移除 /opt/OpenCode、桌面项、图标
+rm -rf ~/.config/ai.opencode.desktop
+rm -rf ~/.cache/@opencode-aidesktop-updater
+```
+
+`dpkg --purge` 会顺带清掉 `/usr/share/applications/` 下的 `ai.opencode.desktop.desktop`
+和 `opencode-desktop.desktop` 两个桌面项，以及 hicolor 图标主题里的图标，
+所以卸载后不需要手动清理菜单图标。

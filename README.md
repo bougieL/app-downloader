@@ -5,6 +5,7 @@
 ## 组成
 
 - `docs/<应用名>.md`：每个应用一个文件，记录仓库地址、各平台资产命名规则、安装方式。
+- `docs/tv/`、`docs/games/`：按使用场景分类的文档，各文件仍按应用划分。
 - `.claude/skills/download-app/SKILL.md`：下载 skill，告诉 Claude 如何查 release、挑资产、校验并安装；
   CLI 工具走同一套文档，额外强调更新时先检测原安装方式。
 
@@ -39,6 +40,12 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [飞书 Feishu](docs/feishu.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
 | [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
+| [Ghostty](docs/ghostty.md) | ghostty-org/ghostty | 桌面客户端 |
+
+按场景分类的文档：
+
+- `docs/tv/`：电视端应用（Aerial TV、Moonlight、SmartTube 等）。
+- `docs/games/`：游戏相关（[Steam](docs/games/steam.md) 的音频链路与爆音修复等）。
 
 个别项目不走 GitHub Release：Herdr CLI 同时提供安装脚本、brew、mise 等方式，
 细节见各自文档。

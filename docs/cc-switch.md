@@ -36,3 +36,10 @@ sudo apt install ./CC-Switch-v<版本>-Linux-x86_64.deb
 
 - 切换服务商配置会直接改写各工具的配置文件（`~/.claude/settings.json` 等），升级前确认没有未提交的重要改动。
 - 升级前先退出正在运行的 CC Switch。
+
+- **`gh release download` 偶尔会下出截断的 deb**：`dpkg-deb -I <包>` 还能正常读出 Version，
+  但 `apt install` 报「错误： 归档文件中成员文件头无效」。校验要连数据段一起验：
+
+  ```bash
+  dpkg-deb -c <包>.deb > /dev/null && echo OK
+  ```

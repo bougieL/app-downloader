@@ -163,3 +163,18 @@ export CODEBUDDY_CONFIG_DIR="$HOME/.my-codebuddy-config"
 - 需要 Node.js >= 18.20（原生二进制版不需要 Node.js）。
 - `codebuddy -p "..."` 走单次输出；要让它动文件、跑命令，得额外加 `-y`
   （`--dangerously-skip-permissions`）。
+
+- **pnpm 全局装的版本可能被精确锁死，`pnpm update -g` 会「Already up to date」不动**：
+  用 `pnpm add -g <包>@<版本>` 装的话，全局 manifest 里写的是精确版本
+  （如 `"@tencent-ai/codebuddy-code": "2.158.0"`），`pnpm update -g <包>` 认为没超范围就不动。
+  查当前写法：
+
+  ```bash
+  grep -rl --include=package.json "codebuddy-code" ~/.local/share/pnpm/global/v*/ | head
+  ```
+
+  精确锁死的要用 `pnpm add -g <包>@<新版本>` 更新；带 `^` 范围的才能用 `pnpm update -g`。
+- **pnpm 的发布时间闸门会挡住刚发布的版本**：pnpm 12 按发布时间过滤新包，
+  `pnpm outdated -g` 给出的 Latest 可能比 `npm view <包> version` 旧（例：npm 上是 2.181.0，
+  pnpm 认为最新是 2.180.0）。想装被挡住的版本，要么等闸门过去，要么把它加进全局
+  `~/.local/share/pnpm/global/v*/pnpm-workspace.yaml` 的 `minimumReleaseAgeExclude` 列表。

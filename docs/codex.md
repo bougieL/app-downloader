@@ -91,3 +91,23 @@ Could not detect the Codex installation method. Please update manually: https://
   `current` 软链指向当前版本。升级会新开一个版本目录并切换软链，旧版本目录会留下来，需要时自己清理。
 - npm/pnpm/bun 装的 `@openai/codex` 里 `codex.js` 只是 shim，真正的二进制在同包的 `vendor/` 下。
 - 升级前退出正在运行的 codex 会话。
+
+- **standalone 更新的安装脚本要从 `https://chatgpt.com/codex/install.sh` 拉取，直连不通时要显式走代理**：
+
+  ```bash
+  HTTPS_PROXY=http://127.0.0.1:<代理端口> HTTP_PROXY=http://127.0.0.1:<代理端口> codex update
+  ```
+
+  没有代理环境变量时，`codex update` 会在 curl 上卡到超时并报
+  `curl: (28) Failed to connect to chatgpt.com port 443`，版本不变。
+  走代理后整个流程要几分钟（脚本重下 + 拉几十 MB 的 release 资产），
+  中途别打断，否则会留下 `~/.codex/packages/standalone/install.lock` 和半截的版本目录。
+  脚本本身下载的资产在 `openai/codex` 的 `rust-v<版本>` release 上（如 `rust-v0.167.0`），
+  资产名 `codex-package-<目标平台>.tar.gz`。
+
+- **下载超时会自动回退到 GitHub Releases，脚本仍以成功结束**：走 `releases.openai.com` 拉 200MB
+  的 `codex-package-<目标平台>.tar.gz` 时可能 300 秒超时（报
+  `curl: (28) Operation timed out after 300000 milliseconds with ... out of ... bytes received`），
+  脚本会打印 `WARNING: Could not download or verify ...; retrying from GitHub Releases.`
+  再从 `github.com/openai/codex/releases` 重下一次装好。看到这行不用当失败处理，
+  等它跑完确认 `codex --version` 变了即可。

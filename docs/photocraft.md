@@ -120,3 +120,17 @@ CLI 随桌面程序走同一份资产，所以更新就是更新桌面程序，�
 - 项目仍是早期 alpha，缺少生成式 AI 功能、部分工具和插件兼容，别当 Photoshop 完全替代。
 - Gentoo 有社区维护的 `media-gfx/photocraft-bin`（::snakebyte overlay），非官方团队维护，
   走 overlay 装的就沿用 `emerge` 更新，不要混用上面的 GitHub 资产。
+
+- **flatpak 装的这版来自 `photocraft-origin` 远程仓库，该仓库可能已被禁用**：
+  `flatpak remote-ls --updates` 什么都查不到，`flatpak update` 因此拉不到新版
+  （报 `Can't fetch summary from disabled remote 'photocraft-origin'`）。
+  更新只能下载 release 里的 `.flatpak` bundle 手动装到**当初那个 scope**
+  （系统级装的就用 `--system`，用户级用 `--user`，别混着来，否则同一个 app id 装两份）：
+
+  ```bash
+  flatpak install --system photocraft-<版本>-linux-x86_64.flatpak
+  ```
+
+  装之前用 `SHA256SUMS.txt` 校验：`sha256sum -c SHA256SUMS.txt`。
+  没下 `.asc` 签名文件时会报「没有那个文件或目录 / 警告：1 个列出的文件无法读取」，
+  忽略那一条即可，flatpak 本体校验通过就行。

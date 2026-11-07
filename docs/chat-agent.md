@@ -47,3 +47,13 @@ macOS 端暂时只有 Apple Silicon（arm64）构建。
 - `latest-linux.yml` 里的 sha512 只对 AppImage 有效，对 `.deb` 无效（记录的大小和哈希都对不上实际发布
   的 deb，估计是打包后重传过的）。校验 deb 别拿 yml 比，直接用 `dpkg-deb -I <包>` 看 Version 对不对。
 - `chat-agent --version` 不会打印版本号，会直接拉起 GUI 主进程并挂住，要看版本用 `dpkg -l chat-agent`。
+
+- **`gh release download` 偶尔会下出截断的包**：`dpkg-deb -I <包>` 还能正常读出 Version，
+  但 `apt install` 报「错误： 归档文件中成员文件头无效 / 无法从 ... 读取元数据」。
+  校验要连数据段一起验，`dpkg-deb -I` 只读控制段不够：
+
+  ```bash
+  dpkg-deb -c <包>.deb > /dev/null && echo OK
+  ```
+
+  不 OK 就删掉重新下载。

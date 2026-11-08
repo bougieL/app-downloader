@@ -41,6 +41,7 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
 | [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
 | [Ghostty](docs/ghostty.md) | ghostty-org/ghostty | 桌面客户端 |
+| [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
 
 按场景分类的文档：
 
@@ -48,7 +49,9 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 - `docs/games/`：游戏相关（[Steam](docs/games/steam.md) 的音频链路与爆音修复等）。
 
 个别项目不走 GitHub Release：Herdr CLI 同时提供安装脚本、brew、mise 等方式，
-细节见各自文档。
+细节见各自文档。VS Code 的 GitHub release 里也**没有任何二进制资产**，
+二进制由微软自己的更新服务器 `update.code.visualstudio.com` 和 apt / rpm 仓库分发，
+详见 [docs/vscode.md](docs/vscode.md)。
 
 ## CLI 工具的安装与更新
 

@@ -41,12 +41,15 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
 | [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
 | [Ghostty](docs/ghostty.md) | ghostty-org/ghostty | 桌面客户端 |
+| [Lichii](docs/pc-games/lichii.md) | zortos293/Lichii | 模拟器 |
+| [TotK Recomp](docs/pc-games/totk-recomp.md) | valentderah/totk-pc-recomp | 游戏重编译 |
 | [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
 
 按场景分类的文档：
 
 - `docs/tv/`：电视端应用（Aerial TV、Moonlight、SmartTube 等）。
 - `docs/games/`：游戏相关（[Steam](docs/games/steam.md) 的音频链路与爆音修复等）。
+- `docs/pc-games/`：PC 上的主机游戏模拟器与游戏移植（[Lichii](docs/pc-games/lichii.md) 的 Release 资产规则与安装、[TotK Recomp](docs/pc-games/totk-recomp.md) 的 Setup 安装器与更新）。
 
 个别项目不走 GitHub Release：Herdr CLI 同时提供安装脚本、brew、mise 等方式，
 细节见各自文档。VS Code 的 GitHub release 里也**没有任何二进制资产**，

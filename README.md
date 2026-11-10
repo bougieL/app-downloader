@@ -44,6 +44,7 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [Lichii](docs/pc-games/lichii.md) | zortos293/Lichii | 模拟器 |
 | [TotK Recomp](docs/pc-games/totk-recomp.md) | valentderah/totk-pc-recomp | 游戏重编译 |
 | [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
+| [Convey](docs/convey.md) | gitlab.gnome.org/donnybeelo/convey | 桌面客户端（邮件） |
 
 按场景分类的文档：
 

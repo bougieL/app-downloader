@@ -186,3 +186,21 @@ export CODEBUDDY_CONFIG_DIR="$HOME/.my-codebuddy-config"
 - **镜像源下载 error (23) 会自动重试成功**：走 npmmirror 镜像时 `pnpm add -g` 可能报
   `[WARN] GET https://registry.npmmirror.com/@tencent-ai/codebuddy-code/-/codebuddy-code-<版本>.tgz error (23). Will retry in 10 seconds. 2 retries left.`，
   pnpm 自动重试后仍会装成功，不用中断重跑；看到这行等它跑完核对 `codebuddy --version` 即可。
+
+- **pnpm 闸门参数只能写成 `--config.minimumReleaseAge=0`**（2026-11-10 实测）：
+  `--min-release-age=0` 和 `--minimum-release-age=0` 都会被 pnpm 11 拒绝，
+  报 `Unknown option: 'min-release-age'`。pnpm 11 没有这两个 CLI 选项，
+  要用 `--config.` 前缀传配置项：
+
+  ```bash
+  pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 @tencent-ai/codebuddy-code@latest
+  ```
+
+  **不带这个参数时 `pnpm add -g <包>@latest` 会静默停在旧版本**：
+  2026-11-10 实测 npm 上最新是 2.182.0，不带参数只装到 2.181.0，
+  加了 `--config.minimumReleaseAge=0` 才升到 2.182.0。`pnpm config get minimumReleaseAge`
+  查出来是 `undefined`，**不代表闸门没生效**，别据此判断。
+
+- **本机状态（2026-11-10 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
+  从 2.180.0 → 2.181.0 → 2.182.0。中间 2.181.0 那次是 `pnpm add -g --ignore-scripts`（不带闸门参数）
+  装的，2.182.0 是加 `--config.minimumReleaseAge=0` 装的。

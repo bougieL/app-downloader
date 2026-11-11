@@ -98,7 +98,7 @@ yarn global list 2>/dev/null | grep "mmx-cli"
 npm update -g mmx-cli
 
 # pnpm
-pnpm update -g mmx-cli
+pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 mmx-cli@latest
 
 # bun
 bun update -g mmx-cli
@@ -106,6 +106,12 @@ bun update -g mmx-cli
 # yarn
 yarn global add mmx-cli@latest
 ```
+
+**pnpm 的闸门参数只能写成 `--config.minimumReleaseAge=0`**（2026-11-10 实测）：
+`--min-release-age=0` / `--minimum-release-age=0` 都会被 pnpm 11 拒绝（报 `Unknown option`）。
+**不带闸门参数时 `pnpm add -g mmx-cli@latest` 会静默停在旧版本**：
+本机当时 npm 上最新是 1.0.29，不带参数只装到 1.0.28，加了 `--config.minimumReleaseAge=0`
+才升到 1.0.29。`pnpm config get minimumReleaseAge` 查出来是 `undefined`，**不代表闸门没生效**。
 
 更新完确认一下版本和生效的路径：
 
@@ -155,3 +161,5 @@ mmx config set --key region --value cn
 - pnpm / bun / yarn 装的不受 mise node 前缀影响，只要 `node` 在 PATH 上就能跑。
 - 需要 Node.js >= 18；版本太低会在启动时报 engines 错误。
 - 同一台机器装过多个 `mmx` 时用 `which -a mmx` 查重复安装。
+- **本机状态（2026-11-10 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
+  从 1.0.28 升到 1.0.29，同样是靠 `--config.minimumReleaseAge=0` 才升上去的。

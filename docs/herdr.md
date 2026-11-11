@@ -145,6 +145,11 @@ agent skill 文件用 `herdr --skill` 打印（内容是给 agent 看的操作�
 
 ## 注意
 
+- **在 herdr 自己开的会话里跑 `herdr update` 会报**
+  `update failed: run 'herdr update' outside herdr after detaching from the session`（2026-11-10 实测）。
+  这跟「有会话在跑」那条提示是同一个限制的两种说法：更新要替换正在被占用的二进制，
+  所以得退出会话再更新。本机当时装的是 0.9.5，上游最新也是 `v0.9.5`，本来就不需要更新。
+
 - **有会话在跑时 `herdr update` 会拒绝更新**，只打印
   `Herdr was not updated. Stop running Herdr sessions when ready, then run 'herdr update' again.`
   想不停掉终端就加 `--handoff`（live handoff，新 server 接管旧 pane，进程继续跑）：

@@ -134,3 +134,23 @@ CLI 随桌面程序走同一份资产，所以更新就是更新桌面程序，�
   装之前用 `SHA256SUMS.txt` 校验：`sha256sum -c SHA256SUMS.txt`。
   没下 `.asc` 签名文件时会报「没有那个文件或目录 / 警告：1 个列出的文件无法读取」，
   忽略那一条即可，flatpak 本体校验通过就行。
+
+  **bundle 覆盖已装的同一个 app id 会报「已安装」错误，但实际已经更新成功**（2026-11-10 实测）：
+  `sudo flatpak install --system photocraft-0.22.0-linux-x86_64.flatpak` 输出
+
+  ```
+  正在安装 app/ai.storyteller.photocraft/x86_64/stable
+  错误：安装捆绑包 ai.storyteller.photocraft 失败：ai.storyteller.photocraft 已安装
+  ```
+
+  **别把这个错误当成失败**，flatpak 已经把旧版本换掉了。装完用
+  `flatpak list --app --columns=application,version` 核对版本号（本次 0.21.0 → 0.22.0，已确认生效）。
+
+- **校验用 grep 过滤出目标架构那一条**，直接 `sha256sum -c SHA256SUMS.txt` 会因为其它架构的资产
+  没下载而报一堆「没有那个文件或目录」。只校验自己下的那个文件：
+
+  ```bash
+  grep 'linux-x86_64.flatpak' SHA256SUMS.txt | sha256sum -c -
+  ```
+
+  输出的 `.asc` 缺失警告同样可以忽略。

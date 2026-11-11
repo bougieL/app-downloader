@@ -99,6 +99,14 @@ netease-music-gpui/
   会在终端挂住并弹出窗口）；判断装的是哪个 nightly 只能用上面的哈希比对。
 - Linux 图标实测不来自 `assets/icons/logo/logo.svg`，icns 里的分块是 `ic07`=128、`ic08`=256、`ic09`=512、
   `ic10`=1024，另有 `ic11`–`ic14` 更大尺寸，按需取用。
+- **本机状态（2026-11-10 核实）**：装的是 `nightly-0.1.0-20261103`（上游当时最新的 nightly），
+  二进制 sha256 `642e2c73ee1b80215762c1400e726af54e47395d305cbb910cfab5c974350093`。
+  下载最新 nightly 解包后二进制哈希一致、`assets/` 目录 `diff -rq` 也无差异，即已是最新，**无需更新**。
+  比对 assets 目录用：
+
+  ```bash
+  diff -rq ~/apps/netease-music-gpui/assets <解包目录>/netease-music-gpui/assets
+  ```
 
 - **启动器里图标显示为空白（缺图标）**：多半是 `netease-music-gpui.desktop` 的 `Icon` 写成了指向不存在
   文件的绝对路径。例如写成 `Icon=~/apps/netease-music-gpui/assets/icons/netease-music-gpui.png`——

@@ -47,3 +47,7 @@ sudo apt install ./CC-Switch-v<版本>-Linux-x86_64.deb
   （`debconf: 无法初始化前端界面：Readline / Teletype ... 这个界面要求可控制的 tty`），
   最后回落到 `Noninteractive` 并正常装完。属正常现象，不影响结果，不必因此重跑；
   装完用 `dpkg -l cc-switch` 核对版本即可。
+- **本机状态（2026-11-10 核实）**：Debian 13 (trixie) / amd64，
+  `dpkg -l cc-switch` 显示 4.0.28（从 4.0.26 升级），装在 `/usr/bin/cc-switch`，
+  桌面项 `/usr/share/applications/CC Switch.desktop`。
+  升级前需要 `pkill -x cc-switch` 关掉运行中的实例，否则 deb 覆盖不了被占用的文件。

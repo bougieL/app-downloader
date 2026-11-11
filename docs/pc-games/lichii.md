@@ -139,12 +139,19 @@ gh api repos/zortos293/Lichii/releases --jq '.[0] | "\(.tag_name)\tprerelease=\(
 
 ## 注意
 
-- **本机状态（2026-11-09 核实）**：Debian 13 (trixie) / amd64，
+- **本机状态（2026-11-10 核实）**：Debian 13 (trixie) / amd64，
   `~/apps/lichii/lichii.AppImage`（`lichii-linux-x86_64-pgo.AppImage`，
-  build-125，sha256 `df1543328c448b07cc9871e70cee4491f5174b44c983a3e32d6223640e3f973c`），
+  build-130，sha256 `7ac03030c7a66b4b7455ee4f46426fc139e870071a6968bae4a645401b770d9b`），
   菜单入口 `~/.local/share/applications/io.github.zortos293.lichii.desktop`，
   图标装在 `~/.local/share/icons/hicolor/{128x128,256x256}/apps/`。
   显卡是 AMD Radeon RX 9070 (Navi 48, RDNA4)。
+- **更新时必须认准 PGO 资产名，别下错成非 PGO 版**：
+  同一个 build 同时有 `lichii-linux-x86_64.AppImage`（非 PGO，约 95 MB）和
+  `lichii-linux-x86_64-pgo.AppImage`（PGO，约 140 MB），**文件名只差一个 `-pgo`**，
+  下错了等于把 PGO 版降级成非 PGO 版。
+  判据是文件大小：PGO 版明显更大（2026-11 实测 build-125 是 140 MB，build-130 是 142 MB，
+  非 PGO 版是 95 MB）。更新后核对 `ls -l ~/apps/lichii/lichii.AppImage` 看大小对不对。
+  菜单项的 `X-AppImage-Version=` 标记可以手动同步成本次 build 号。
 - **AppImage 只打包了 128x128 和 256x256 两个尺寸的图标**，
   装菜单时手动拷这两个尺寸即可，别的尺寸缺省走 Qt 自带的。
 - **build-116 在 AMD RX 6000/5000/Vega/Polaris（RNDA2 及更老）上会崩**

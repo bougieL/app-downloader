@@ -94,6 +94,13 @@ pi update --all          # pi 自身 + 已装扩展
 npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-agent@latest
 ```
 
+**pnpm 的闸门参数写法不一样**，pnpm 没有 `--min-release-age` / `--minimum-release-age` 这两个 CLI 选项
+（写上去会报 `Unknown option`），要写成 `--config.minimumReleaseAge=0`：
+
+```bash
+pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 @earendil-works/pi-coding-agent@latest
+```
+
 ## 注意
 
 - 两条版本线的包名不同（`@mariozechner/pi-coding-agent` vs `@earendil-works/pi-coding-agent`），
@@ -111,3 +118,19 @@ npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-ag
 
 - `--min-release-age=0` 这个发布时间闸门参数是 npm 11 才有的，npm 10.x 遇到它当作未知配置直接忽略，
   不会报错，也不影响升级结果（pi 官方发布是即时的，本来也不需要闸门）。
+
+- **pnpm 全局目录里没有 `package.json`，只有一个 `pnpm-workspace.yaml`**，闸门配置写在那个文件里
+  （`~/.local/share/pnpm/global/v11/pnpm-workspace.yaml`）。`pnpm config get minimumReleaseAge`
+  查出来是 `undefined`，**不代表闸门没生效**——pnpm 11 对全局安装有独立的默认闸门，
+  不带 `--config.minimumReleaseAge=0` 时会静默停在旧版本，装出来的版本号比 `npm view <包名> version` 报的旧。
+  症状是：`pnpm add -g <包名>@latest` 显示 `+ <包名> <旧版本>`，版本号没变；
+  `npm view <包名> version` 明明是新的。**每次 pnpm 更新后都要核对版本号**，
+  没变就加上 `--config.minimumReleaseAge=0` 重跑。
+
+- **`pi update` 会超时失败**（2026-11 实测）：`Error: Could not determine latest pi version:
+  The operation was aborted due to timeout`。它要联网查版本，网络不通就报错而不是回退到本地。
+  这时直接按上面手动执行对应包管理器的命令。
+
+- **本机状态（2026-11-10 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
+  实测从 1.5.0 升到 1.5.2 就是靠 `--config.minimumReleaseAge=0` 才升上去的，
+  不带这个参数时 `pnpm add -g ...@latest` 装完还是 1.5.0。

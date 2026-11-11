@@ -50,3 +50,9 @@ macOS 端暂时只有 Apple Silicon（arm64）构建。
 - **脚本/非交互终端里 `sudo apt install ./xxx.deb` 会刷一串 debconf front-end 警告**
   （`debconf: 无法初始化前端界面：Readline / Teletype ... 这个界面要求可控制的 tty`），
   最后回落到 `Noninteractive` 并正常装完。属正常现象，不影响结果，不必因此重跑。
+- **`gh release download` 会直接报网络错误，重跑即可**（2026-11-10 实测）：
+  `Get "https://api.github.com/repos/bougieL/terminal-manager-releases/releases/tags/v1.27.2": EOF`，
+  同一个命令重跑一次就下好了。
+- **本机状态（2026-11-10 核实）**：Debian 13 (trixie) / amd64，
+  `dpkg -l tessera` 显示 1.27.2（从 1.27.0 升级），deb 装在 `/opt/Tessera`，
+  桌面项 `/usr/share/applications/tessera.desktop`。

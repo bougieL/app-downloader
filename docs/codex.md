@@ -111,3 +111,10 @@ Could not detect the Codex installation method. Please update manually: https://
   脚本会打印 `WARNING: Could not download or verify ...; retrying from GitHub Releases.`
   再从 `github.com/openai/codex/releases` 重下一次装好。看到这行不用当失败处理，
   等它跑完确认 `codex --version` 变了即可。
+
+- **已经是最新版本时 `codex update` 会直接报 TLS 错误**（2026-11-10 实测）：
+  `curl: (35) TLS connect error: error:0A000126:SSL routines::unexpected eof while reading`，
+  脚本以 status 35 退出。**这不代表更新失败**，先比一下版本：
+  `gh api repos/openai/codex/releases/latest --jq .tag_name` 拿到 `rust-v<版本>`，
+  和 `codex --version` 对上就说明本来就已是最新，不用重试。本机当时是 0.167.0，
+  上游最新也是 `rust-v0.167.0`，属于这种情况。

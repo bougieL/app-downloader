@@ -57,3 +57,12 @@ macOS 端暂时只有 Apple Silicon（arm64）构建。
   ```
 
   不 OK 就删掉重新下载。
+- **`gh release download` 也会直接报网络错误**（2026-11-10 实测）：
+  `Get "https://api.github.com/repos/<owner>/<repo>/releases/tags/<tag>": EOF`。
+  这是 GitHub API 侧的临时故障，**重跑同一条命令通常就成功了**，不用换下载方式
+  （curl 直连 release 资产也可以，但 `gh release download` 更稳，它自带重试）。
+- **本机状态（2026-11-10 核实）**：Debian 13 (trixie) / amd64，
+  `dpkg -l chat-agent` 显示 1.44.0（从 1.42.0 升级），deb 装在 `/opt/ChatAgent`，
+  桌面项 `/usr/share/applications/chat-agent.desktop`。
+  注意本机同时跑着一个从源码起的开发版（`~/Projects/chat-agent-electron` 的 electron-vite dev），
+  那个不受 deb 升级影响。

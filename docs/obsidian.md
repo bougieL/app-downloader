@@ -61,8 +61,8 @@ sudo apt install ./tmp/obsidian/obsidian_<版本>_amd64.deb
   `~/Documents/Obsidian/` 或用户自设的库目录（笔记本体），升级不会动它们。
 - 官方 `Obsidian-<版本>.asar.gz` 是解包后的 asar 源码，不是可运行的程序，别当安装包下载。
 - 社区插件和主题也可能在更新时被要求重新安装，属正常现象。
-- **本机状态（2026-11-10 核实）**：Debian 13 (trixie) / amd64，
-  `dpkg -l obsidian` 显示 1.13.4，**官方没有 apt 源**，是手动下 deb 装的
+- **本机状态（2026-11-12 核实）**：Debian 13 (trixie) / amd64，
+  `dpkg -l obsidian` 显示 1.15.0，**官方没有 apt 源**，是手动下 deb 装的
   （`apt-cache policy obsidian` 显示候选版本与已装版本相同、优先级 100）。
-  本次从 `obsidianmd/obsidian-releases` 的 `v1.15.0` 下载
+  从 `obsidianmd/obsidian-releases` 的 `v1.15.0` 下载
   `obsidian_1.15.0_amd64.deb` 用 `sudo apt install ./...deb` 升级成功。

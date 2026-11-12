@@ -55,3 +55,9 @@ update-desktop-database ~/.local/share/applications/
 
 仓库同时发 `vX.Y.Z-pre` 预发布，稳定版用 `releases/latest` 取（`releases` 列表里 pre 排在前面，
 别直接拿列表第一个）。远程服务端 `zed-remote-server` 是独立资产、单独更新，和编辑器版本不必一致。
+
+- **本机状态（2026-11-12 核实）**：Debian 13 (trixie) / amd64，装在 `~/.local/zed.app`，
+  `~/.local/bin/zed` 是指向 `~/.local/zed.app/bin/zed` 的软链。
+  本次从 `v1.28.1` 的 `zed-linux-x86_64.tar.gz` 整目录替换，从 1.27.0 升到 1.28.1；
+  桌面入口 `~/.local/share/applications/dev.zed.Zed.desktop` 是改过绝对路径的那份，
+  整目录替换后 `Exec`/`Icon` 路径不变，不用再改。

@@ -204,3 +204,7 @@ ghostty +list-keybinds      # 列出快捷键
   一类的 front-end 警告，**这是正常的**，包本身装成功，不影响结果。
 - 新版本会重新生成 systemd 用户单元软链 `/etc/systemd/user/graphical-session.target.wants/
   app-com.mitchellh.ghostty.service`，升级后如果菜单里打不开，退出再登录一次即可。
+
+- **本机状态（2026-11-12 核实）**：Debian trixie / amd64，已装 `1.4.0-0~ppa2`（社区 PPA 打包）。
+  上游最新稳定 tag 仍是 `v1.4.0`，社区仓库最新 release 也还是 `1.4.0-0-ppa2`，**已是最新，无需更新**。
+  Debian 官方源那个 `1.4.0-2~trixie` 是官方打包的同版本，不要混装（见上面「不要混装官方源和社区 PPA」）。

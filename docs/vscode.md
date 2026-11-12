@@ -280,3 +280,11 @@ code --version
 - **Windows 免安装版**：解压后必须新建空的 `data` 文件夹才会进入 Portable 模式。
 - **命令行用法**：`code <目录>` 打开目录、`code --install-extension <id>` 装扩展、
   `code --list-extensions` 列扩展、`code --tunnel` 起远程隧道（另有独立的 `code-tunnel` 可执行文件）。
+
+- **本机状态（2026-11-12 核实）**：Debian 13 (trixie) / amd64，**手动装 deb** 的
+  （`apt-cache policy code` 候选版本与已装版本相同、优先级 100，说明没配 Microsoft apt 源）。
+  本次从 `https://update.code.visualstudio.com/latest/linux-deb-x64/stable` 下载
+  `code_1.146.0-1794340865_amd64.deb`（291 MB），sha256 `f83565f7f11a60b256807fe2216da8405f9728f193754959695242eecd148992`，
+  用 `sudo apt install ./...deb` 从 1.145.2 升到 1.146.0。
+  官网更新接口 `https://update.code.visualstudio.com/api/update/linux-deb-x64/stable/latest`
+  返回的 JSON 里带下载地址和 sha256，下载后用它校验。

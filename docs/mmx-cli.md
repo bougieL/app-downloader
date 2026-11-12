@@ -161,5 +161,7 @@ mmx config set --key region --value cn
 - pnpm / bun / yarn 装的不受 mise node 前缀影响，只要 `node` 在 PATH 上就能跑。
 - 需要 Node.js >= 18；版本太低会在启动时报 engines 错误。
 - 同一台机器装过多个 `mmx` 时用 `which -a mmx` 查重复安装。
-- **本机状态（2026-11-10 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
+- **本机状态（2026-11-12 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
   从 1.0.28 升到 1.0.29，同样是靠 `--config.minimumReleaseAge=0` 才升上去的。
+- **`pnpm update -g` 不会升到 npm 上的 `latest`**（2026-11-12 实测）：
+  `pnpm update -g mmx-cli` 装完还是 1.0.28，`pnpm add -g mmx-cli@latest` 才升到 1.0.29。

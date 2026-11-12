@@ -131,6 +131,10 @@ pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 @earendil-works/pi-cod
   The operation was aborted due to timeout`。它要联网查版本，网络不通就报错而不是回退到本地。
   这时直接按上面手动执行对应包管理器的命令。
 
-- **本机状态（2026-11-10 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
-  实测从 1.5.0 升到 1.5.2 就是靠 `--config.minimumReleaseAge=0` 才升上去的，
-  不带这个参数时 `pnpm add -g ...@latest` 装完还是 1.5.0。
+- **本机状态（2026-11-12 核实）**：**npm 装的**（mise 管的 node 22.22.3，
+  路径 `~/.local/share/mise/installs/node/22.22.3/lib/node_modules/@earendil-works/pi-coding-agent`），
+  不是 pnpm。`pi` 在 PATH 上是 mise 的 shim，所以 `readlink -f` 只能拿到 `/usr/bin/mise`，
+  判断安装方式要看 mise 那个 node 的 `npm ls -g`。
+  实测从 1.5.0 升到 1.5.2，用的是
+  `mise exec -- npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-agent@latest`；
+  不带 `--min-release-age=0` 时会卡在 1.5.0。

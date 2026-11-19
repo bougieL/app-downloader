@@ -11,6 +11,8 @@
 
 ### Linux
 
+**方式：官方 tar.gz（本机用的就是这种）**
+
 资产：`zed-linux-x86_64.tar.gz`、`zed-linux-aarch64.tar.gz`。解压出 `zed.app/` 目录：
 
 ```bash
@@ -56,8 +58,43 @@ update-desktop-database ~/.local/share/applications/
 仓库同时发 `vX.Y.Z-pre` 预发布，稳定版用 `releases/latest` 取（`releases` 列表里 pre 排在前面，
 别直接拿列表第一个）。远程服务端 `zed-remote-server` 是独立资产、单独更新，和编辑器版本不必一致。
 
-- **本机状态（2026-11-12 核实）**：Debian 13 (trixie) / amd64，装在 `~/.local/zed.app`，
-  `~/.local/bin/zed` 是指向 `~/.local/zed.app/bin/zed` 的软链。
-  本次从 `v1.28.1` 的 `zed-linux-x86_64.tar.gz` 整目录替换，从 1.27.0 升到 1.28.1；
-  桌面入口 `~/.local/share/applications/dev.zed.Zed.desktop` 是改过绝对路径的那份，
-  整目录替换后 `Exec`/`Icon` 路径不变，不用再改。
+- **本机状态（2026-11-19 核实）**：Fedora 45 (Workstation) / amd64，装在 `~/.local/zed.app`，
+  `~/.local/bin/zed` 是指向 `~/.local/zed.app/bin/zed` 的软链（`~/.local/bin` 已在 PATH 里）。
+  本次从 `v1.29.2` 的 `zed-linux-x86_64.tar.gz` 全新安装（1.29.2）；
+  2026-11-19 核对时 `releases/latest` 仍是 `v1.29.2`，已是最新稳定版。
+  图标装在 `~/.local/share/icons/hicolor/`，桌面入口 `~/.local/share/applications/dev.zed.Zed.desktop`
+  是把 `TryExec`/`Exec`/`Icon` 改成绝对路径的那份。
+- 上一台机器（Debian 13 / amd64）上装的是 `v1.28.1`，同样是 tar.gz 方式、同样在 `~/.local/zed.app`。
+
+## 配置
+
+用户配置在 `~/.config/zed/settings.json`（JSONC，可写注释）。
+
+### 字体
+
+本机统一用 Maple Mono Normal CN（自带中文字形，中英 2:1）：
+
+```json
+{
+  "ui_font_family": "Maple Mono Normal CN",
+  "buffer_font_family": "Maple Mono Normal CN",
+  "terminal": {
+    "font_family": "Maple Mono Normal CN"
+  }
+}
+```
+
+- `terminal.font_family` 不设时默认继承 `buffer_font_family`。
+- **Zed 用 cosmic-text 渲染，自己管字体回退，不读系统 fontconfig 的中文规则**，
+  所以系统级 fontconfig 配好了也没用，三个设置项都要逐个写明。
+- 字体方案和系统级 fontconfig 配置见 [docs/fonts.md](fonts.md)。
+
+## 注意
+
+- **不要用 Flatpak 版**。Flathub 上的 `dev.zed.Zed` 依赖 `org.freedesktop.Sdk/x86_64/26.08`，
+  这个 SDK 不在机器已有的 runtime 里，要现下 1~2GB（实测下到 1.7G 还没完就超时了），慢网基本没法用；
+  官方 tar.gz 只有 ~90MB。而且新版 `flatpak install` 已没有 `--command=` 选项，装完不会生成
+  `~/.local/bin/zed`，命令行入口还得自己写 wrapper（`exec flatpak run dev.zed.Zed "$@"`）。
+  一律用上面的官方 tar.gz 方式。
+- 试过一半放弃 flatpak 安装时，`~/.local/share/flatpak/repo/tmp/` 会留下 `staging-*` 目录，
+  用 `flatpak repair --user` 修剪对象，再手工删掉残留的 `staging-*` 目录。

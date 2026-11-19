@@ -21,6 +21,24 @@ claude code 没有"标准安装方式"，下面每种都有人用。**装的时�
 | winget（Windows） | `winget list` 里有 `Anthropic.ClaudeCode` | `winget upgrade Anthropic.ClaudeCode` |
 | apt/dnf/apk | 系统包管理器能列出 `claude-code` 的文件 | 用系统包管理器升级（需要 sudo） |
 
+## 安装
+
+原生安装脚本（不需要 node，装完自带运行时）：
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+装完是 `~/.local/bin/claude` 指向 `~/.local/share/claude/versions/<版本>` 的软链。
+脚本会拒绝在 sudo 下运行（装到 root 家目录就没用了）。
+
+npm 系（需要先有 node）：
+
+```bash
+pnpm add -g @anthropic-ai/claude-code@latest   # 优先 pnpm
+npm install -g @anthropic-ai/claude-code@latest
+```
+
 ## 检测当前安装方式
 
 更新前必须先检测出当前方式，然后沿用它。
@@ -100,6 +118,15 @@ claude update
 `latest` 是默认值，`stable` 落后一周左右。brew 不看这个设置，用 cask 名区分：
 `claude-code` 是 stable，`claude-code@latest` 是 latest。
 
+## zsh 支持
+
+Claude Code **没有 shell 补全命令**（`claude --help` 里没有 `completion` 子命令，
+上游仓库里也没有 zsh/bash 补全脚本），zsh 下只能靠 PATH 和 alias，没有按 Tab 补全。
+
+原生安装的 `~/.local/bin/claude` 是软链（指向 `~/.local/share/claude/versions/<版本>`），
+该目录要进 PATH；本机把它加在了 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 里统一管理。
+详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - 把 `~/.local/bin/claude` 换成自己的脚本或软链后，原生安装器就不再管这个启动器了：
@@ -110,3 +137,6 @@ claude update
 - npm 方式不要用 `sudo npm install -g`，会导致自动更新失败。
 - 原生安装（以及 npm 安装）可以用 `settings.json` 的 `env.DISABLE_AUTOUPDATER = "1"` 关掉自动更新。
 - 升级前退出正在运行的 claude 会话。
+- 原生安装脚本在 Fedora 45 上实测正常（2026-11-18，装的是 2.1.327），
+  装完 `~/.local/bin/claude` 是软链，指向 `~/.local/share/claude/versions/<版本>`。
+- `claude update` 走的是同一套原生安装流程，更新时不需要 node。

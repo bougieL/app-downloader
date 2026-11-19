@@ -72,7 +72,7 @@ harfbuzz、EGL、Wayland client、X11。
 | --- | --- |
 | Ubuntu 26.04+ / Debian | `sudo apt install ghostty`（官方源版本偏旧，Ubuntu 26.04 首发是 1.3.0） |
 | Arch | `sudo pacman -S ghostty` |
-| Fedora | `sudo dnf copr enable scottames/ghostty && sudo dnf install ghostty` |
+| Fedora | `sudo dnf -y copr enable scottames/ghostty && sudo dnf -y install ghostty`（**社区 COPR，不是官方源**，见下） |
 | openSUSE | `sudo zypper in ghostty` |
 | Alpine | `apk add ghostty` |
 | Gentoo | `emerge -av ghostty` |
@@ -88,6 +88,28 @@ users.users.somebody.packages = [ pkgs.ghostty ];
 
 非 NixOS 系统用 nixpkgs 的 `ghostty` **会启动失败**（找不到 OpenGL 驱动库路径），
 需要 nixGL / nix-gl-host 之类的包装。
+
+#### Fedora（社区 COPR）
+
+**Fedora 官方源没有 ghostty**（2026-11 核实：`dnf info ghostty` → `No matches found`，
+packages.fedoraproject.org 搜 `ghostty` 各发行版命中数都是 0）。官方文档
+<https://ghostty.org/docs/install/binary> 给 Fedora 的推荐是社区 COPR `scottames/ghostty`：
+
+```bash
+sudo dnf -y copr enable scottames/ghostty
+sudo dnf -y install ghostty
+```
+
+COPR 里提供 `ghostty-1.4.0-2.fc45`（x86_64）等版本，`ghostty-devel` 是构建时依赖。
+COPR 仓库里另外还挂着 `zig015` / `zig017` / `gtk4-layer-shell` 等包（`gtk4-layer-shell`
+Fedora 官方源本来就有，装 ghostty 时用的是官方源那份）。
+
+另一条路是 Terra 仓库（`repos.fyralabs.com/terra`，需要 `--nogpgcheck` 装 `terra-release`），
+里面也有 ghostty，但不推荐额外引入来路不明的源。
+
+不想动系统源的话，还有官方文档列的通用 AppImage（任何发行版可用，源码
+<https://github.com/pkgforge-dev/ghostty-appimage>）：下载后 `chmod +x` 直接跑，
+不用 sudo，但升级要手动换文件、菜单入口也要自己加。
 
 #### Flatpak
 
@@ -119,8 +141,10 @@ zig build -Doptimize=ReleaseFast
 
 ```bash
 command -v ghostty            # 路径
-dpkg -l ghostty               # 系统包版本
-apt-cache policy ghostty       # 候选版本来自哪个源
+dpkg -l ghostty               # 系统包版本（Debian 系）
+rpm -q ghostty                # 系统包版本（Fedora/RHEL 系）
+apt-cache policy ghostty       # 候选版本来自哪个源（Debian 系）
+dnf repoquery --qf '%{name}-%{evr} [%{repoid}]' ghostty   # 包来自哪个 repo（Fedora 系）
 flatpak list | grep -i ghostty
 snap list | grep -i ghostty
 ```
@@ -130,6 +154,9 @@ snap list | grep -i ghostty
 - `/usr/bin/ghostty` + `dpkg -l ghostty` 有记录 → 系统包（deb / PPA 装的）。
   再看 `apt-cache policy ghostty` 的候选版本来源：`ppa.launchpadcontent.net/mkasberg/...`
   是 PPA 装的，其余（`debian/...`）是发行版官方源装的。
+- `/usr/bin/ghostty` + `rpm -q ghostty` 有记录 → Fedora/RHEL 系系统包。
+  `dnf repoquery` 输出的 `[repoid]` 含 `copr:copr.fedorainfracloud.org:<owner>:<project>`
+  → COPR 装的；含 `fedora` / `updates` → 官方源装的。
 - `~/.local/bin/ghostty`（软链或自编译）→ 手动装 / 自编译。
 - `flatpak list` / `snap list` 有记录 → 对应沙箱包。
 - nix profile 目录里出现 → nix 装的。
@@ -149,6 +176,9 @@ snap list | grep -i ghostty
 - 发行版官方源装的：用该发行版的原生命令（`pacman -Syu ghostty`、`dnf install ghostty`……）。
 - nix 装的：`sudo nix profile upgrade`。
 - snap 装的：`sudo snap refresh ghostty`。
+- Fedora 系 COPR 装的（`dnf repoquery` 里 repoid 含 `copr:`）：`sudo dnf upgrade ghostty`，
+  COPR 仓库保持 enabled 就能跟着升级；不再用这个源时
+  `sudo dnf copr remove scottames/ghostty`（会顺带把 `ghostty` 包一起卸掉，先确认）。
 - macOS dmg / brew cask：重新下载拖进 `/Applications`，或 `brew upgrade --cask ghostty`。
 
 查社区仓库最新版本：
@@ -169,6 +199,19 @@ ghostty +list-keybinds      # 列出快捷键
 ```
 
 配置项与默认值见 <https://ghostty.org/docs/config/reference>。
+
+### 字体
+
+**没设 `font-family` 时，Ghostty 用 fontconfig 的 `monospace` 默认值**，不自带字体
+（Fedora 的 ghostty 包里没有任何 ttf/otf）。
+
+本机情况：
+
+- 装了 Fedora 仓库的 `jetbrains-mono-fonts`，所以 Ghostty 的拉丁字形是 JetBrains Mono。
+- 中文字形靠系统级 fontconfig 配置（`~/.config/fontconfig/fonts.conf`），
+  统一回退到 Maple Mono Normal CN。
+
+具体配置见 [docs/fonts.md](fonts.md)。
 
 ## 注意
 
@@ -206,5 +249,27 @@ ghostty +list-keybinds      # 列出快捷键
   app-com.mitchellh.ghostty.service`，升级后如果菜单里打不开，退出再登录一次即可。
 
 - **本机状态（2026-11-12 核实）**：Debian trixie / amd64，已装 `1.4.0-0~ppa2`（社区 PPA 打包）。
-  上游最新稳定 tag 仍是 `v1.4.0`，社区仓库最新 release 也还是 `1.4.0-0-ppa2`，**已是最新，无需更新**。
+  上游最新稳定 tag 仍是 `v1.4.0`，社区仓库最新 release 也还是 `1.4.0-0~ppa2`，**已是最新，无需更新**。
   Debian 官方源那个 `1.4.0-2~trixie` 是官方打包的同版本，不要混装（见上面「不要混装官方源和社区 PPA」）。
+
+## Fedora 专记
+
+- **本机状态（2026-11-19 核实）**：Fedora 45 Workstation / x86_64 / Wayland。
+  走社区 COPR `scottames/ghostty` 装的是 `ghostty-1.4.0-2.fc45`，`/usr/bin/ghostty`，
+  桌面入口 `/usr/share/applications/com.mitchellh.ghostty.desktop`
+  （`TryExec=ghostty`、`Exec=ghostty --gtk-single-instance=true`，相对命令），图标走 hicolor。
+  `ghostty --version` 输出 `Ghostty 1.4.0-2.fc45`，其中 `channel: tip`（COPR 里这个包是从
+  ghostty 的 tip 分支构建的），上游最新稳定 tag 仍是 `v1.4.0`。
+- **Fedora 官方源里没有 ghostty**（`dnf info ghostty` → `No matches found`），
+  Flathub 也依然没有官方 `com.mitchellh.ghostty`（2026-11-19 核实），Fedora 上只能走 COPR。
+- **`dnf copr enable` 在非交互终端里必须加 `-y`**：不带 `-y` 时插件会弹
+  「Enabling a Copr repository ... Is this ok [y/N]:」，读不到输入就**直接退出且不写
+  repo 文件**，看起来像成功了但 `/etc/yum.repos.d/` 里什么都没有。确认方法：
+  `grep -l ghostty /etc/yum.repos.d/*`。
+- 装完 COPR 的包后 dnf 会自动导入 COPR 的 GPG key（`scottames_ghostty ... 0xFEB5DAFB`），
+  正常现象。
+- dnf5 偶尔输出 `Warning: A pending offline transaction initiated by the following command
+  will be invalidated: dnf5daemon-server`，**是 dnf5 守护进程的正常提示，不影响安装结果**。
+- 想彻底摆脱这个源：`sudo dnf copr remove scottames/ghostty`，注意这会同时卸载
+  `ghostty` 包。
+

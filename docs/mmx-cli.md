@@ -146,6 +146,14 @@ mmx config set --key region --value cn
 环境变量优先级高于配置文件：`MINIMAX_API_KEY`、`MINIMAX_REGION`（`global` / `cn`，
 不设置时自动探测）。把 API key 写进环境变量或本地配置文件，不要提交到仓库。
 
+## zsh 支持
+
+mmx **没有 shell 补全**（上游仓库里没有 zsh/bash 补全脚本，CLI 也没有 `completion` 子命令），
+zsh 下只能靠 PATH 和 alias，没有按 Tab 补全。
+
+pnpm 全局 bin 目录（`~/.local/share/pnpm`）要进 PATH；本机统一加在
+`~/.oh-my-zsh/custom/conf/project-cli.zsh` 里。详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - `mmx update` 硬编码 npm 命令，不管当初是怎么装的，别直接照抄。实测 1.0.16 和 1.0.28 都是这样，

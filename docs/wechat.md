@@ -50,6 +50,24 @@ flatpak run com.tencent.WeChat
 沙箱隔离，卸载干净（`flatpak uninstall com.tencent.WeChat`），不往系统里塞 `/opt/wechat`。
 缺点：文件选择、截图、通知等需要额外授权，第一次跑会弹权限对话框。
 
+#### Fedora 上实测（2026-11，Fedora 45 + GNOME Wayland）
+
+flathub 已经指向国内镜像（见 [mirrors.md](mirrors.md)）时，用户级安装即可，不用 sudo：
+
+```bash
+flatpak install -y --user flathub com.tencent.WeChat
+```
+
+- 依赖运行时 `org.freedesktop.Platform/x86_64/26.08`；
+- 沙箱内数据的宿主路径：`~/.var/app/com.tencent.WeChat/xwechat_files`、
+  `~/.var/app/com.tencent.WeChat/.xwechat`；进程在沙箱里看到的却是 `/home/bougie/xwechat_files`（沙箱内 HOME 被映射过），
+  排查数据问题时别按进程里的路径去宿主找；
+- Wayland 下建议强制走 XWayland 启动，否则窗口不能置顶、输入法候选框位置偏：
+
+```bash
+flatpak run --env=XDG_SESSION_TYPE=x11 --env=QT_QPA_PLATFORM=xcb com.tencent.WeChat
+```
+
 ### deb
 
 ```bash
@@ -224,6 +242,10 @@ ls ~/.var/app/com.tencent.WeChat/xwechat_files/
 
 ## 注意
 
+- flatpak 安装末尾会打印 `bsdtar: Failed to set default locale`：宿主 locale 名是 `zh_CN.utf8`，
+  `locale -a` 里没有 `zh_CN.UTF-8` 这个别名，bsdtar 找不到就报这句，无害，不影响安装结果。
+- flatpak 启动日志里的 `ERROR:scoped_ptrace_attach.cc ... ptrace: Operation not permitted`
+  是沙箱内 crashpad 想附加调试器被拒，无害，微信照常运行。
 - **升级前先退出微信**，运行中直接装 deb 会因为文件被占用而失败，或导致聊天记录写坏。
 - 聊天记录与文件在 `~/Documents/WeChat Files`（旧版本目录名是 `~/Documents/xweChat_files`）。
   换目录名时按微信启动时的提示重命名，别直接删。

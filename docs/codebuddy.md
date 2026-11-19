@@ -142,6 +142,15 @@ which -a codebuddy
 export CODEBUDDY_CONFIG_DIR="$HOME/.my-codebuddy-config"
 ```
 
+## zsh 支持
+
+CodeBuddy Code **没有 shell 补全**（上游仓库里没有 zsh/bash 补全脚本），
+zsh 下只能靠 PATH 和 alias，没有按 Tab 补全。
+
+原生二进制版和包管理器版都落在 `~/.local/bin/codebuddy`，该目录要进 PATH；
+pnpm 装的话全局 bin 目录（`~/.local/share/pnpm`）也要进。本机统一加在
+`~/.oh-my-zsh/custom/conf/project-cli.zsh` 里。详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - **原生二进制版和包管理器版都往 `~/.local/bin/codebuddy` 放文件**（原生版是直接放可执行文件，

@@ -36,15 +36,23 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [Codex CLI](docs/codex.md) | openai/codex | CLI |
 | [Claude Code](docs/claude.md) | anthropics/claude-code | CLI |
 | [MMX CLI](docs/mmx-cli.md) | MiniMax-AI/cli | CLI |
+| [pnpm](docs/pnpm.md) | pnpm/pnpm | CLI（包管理器） |
 | [微信 Linux 版](docs/wechat.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [飞书 Feishu](docs/feishu.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
+| [Oh My Zsh](docs/oh-my-zsh.md) | ohmyzsh/ohmyzsh | Shell 框架 |
 | [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
 | [Ghostty](docs/ghostty.md) | ghostty-org/ghostty | 桌面客户端 |
 | [Lichii](docs/pc-games/lichii.md) | zortos293/Lichii | 模拟器 |
 | [TotK Recomp](docs/pc-games/totk-recomp.md) | valentderah/totk-pc-recomp | 游戏重编译 |
 | [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
 | [Convey](docs/convey.md) | gitlab.gnome.org/donnybeelo/convey | 桌面客户端（邮件） |
+| [GNOME 扩展](docs/gnome-extensions.md) | extensions.gnome.org（非 GitHub Release） | 桌面增强 |
+
+非应用类的文档：
+
+- [系统字体](docs/fonts.md)：全机统一的等宽/中文字体方案（Maple Mono Normal CN）、
+  各应用的字体设置与 fontconfig 配置。
 
 按场景分类的文档：
 
@@ -56,6 +64,12 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 细节见各自文档。VS Code 的 GitHub release 里也**没有任何二进制资产**，
 二进制由微软自己的更新服务器 `update.code.visualstudio.com` 和 apt / rpm 仓库分发，
 详见 [docs/vscode.md](docs/vscode.md)。
+
+## 国内镜像
+
+把 dnf、flatpak、npm / pnpm、pip、cargo、go 等源指向国内镜像的配置文件、验证方法和踩过的坑
+（重点：dnf 的 metalink 优先级高于 baseurl，只改 baseurl 是不生效的），
+见 [docs/mirrors.md](docs/mirrors.md)。
 
 ## CLI 工具的安装与更新
 
@@ -70,6 +84,20 @@ CLI 工具（opencode、pi、codex、claude 等）不走 GitHub Release 下载�
 
 **更新时必须沿用原来的安装方式。** 换方式的结果是同一个命令名出现两份、PATH 上互相覆盖，
 或者升级命令去改了另一个包管理器的目录。判断不出来就问用户，不要猜。
+
+## zsh 支持
+
+本项目装的 CLI 工具都要能在 zsh 下直接用、最好还能按 Tab 补全。
+统一由 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 管理：
+
+- **PATH**：各工具的安装目录（`~/.local/bin`、`~/.opencode/bin`、mise 的 shims、
+  pnpm 全局目录等）都加进 `path`；
+- **补全**：工具提供了 `completion` 子命令的，把补全写到
+  `~/.local/share/zsh/site-functions/_<命令>`，该目录在 `fpath` 里，由 `compinit` 自动注册；
+  补全文件比可执行文件旧时自动重新生成。
+
+每个 CLI 文档末尾都有一节「zsh 支持」，写明这个工具的补全从哪来（或者没有）。
+详见 [docs/oh-my-zsh.md](docs/oh-my-zsh.md)。
 
 ## 约定
 

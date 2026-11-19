@@ -9,6 +9,9 @@
 面向 coding agent 的终端工作区管理器（Rust 单二进制，无 Electron）。把终端组织成
 workspace / tab / pane，识别 pane 里跑的 agent，并通过 `herdr` CLI 和 socket API 暴露出来。
 
+> 这是 **TUI / CLI 版**。Herdr 还有**桌面客户端**（GUI）和后台核心，
+> 见 `docs/herdr-app.md`（`herdr-app` / `hc`），三个是独立的安装物，别混。
+
 ## 二进制与版本清单
 
 GitHub Release 上的资产是**没有扩展名的裸二进制**，按 `<产品>-<平台>-<架构>` 命名：
@@ -143,6 +146,18 @@ herdr integration install codex
 agent skill 文件用 `herdr --skill` 打印（内容是给 agent 看的操作指南），
 需要装成 skill 时把它写到对应 agent 的 skills 目录，别跟 `herdr integration install` 混为一谈。
 
+## zsh 支持
+
+`herdr` 自带 zsh 补全：
+
+```bash
+herdr completion zsh > ~/.local/share/zsh/site-functions/_herdr
+```
+
+本机把 `~/.local/share/zsh/site-functions` 加进了 `fpath`，补全文件由
+`~/.oh-my-zsh/custom/conf/project-cli.zsh` 自动生成和维护，不用手动跑。
+详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - **在 herdr 自己开的会话里跑 `herdr update` 会报**
@@ -181,3 +196,12 @@ agent skill 文件用 `herdr --skill` 打印（内容是给 agent 看的操作�
 - `herdr server stop` 会停掉 server，正在跑的终端会被停掉——不是「关窗口」那种语义，别随手执行。
 - 配置项 `HERDR_INSTALL_DIR` 决定脚本装到哪，`HERDR_ENV=1` 表示当前进程跑在 herdr 管理的 pane 里
   （agent 用它判断能不能调 `herdr` 控制会话）。
+- 官方安装脚本会自己校验 sha256（和 `herdr update` 用同一份 `https://herdr.dev/latest.json` 清单）。
+  装完可以自己对一下：
+
+  ```bash
+  sha256sum ~/.local/bin/herdr
+  ```
+
+  清单里 `sha256.linux-x86_64` 的值应该一致（2026-11-18 装的 0.9.5 对得上）。
+- 在 Fedora 45 上实测正常（2026-11-18，装的是 0.9.5，装在 `~/.local/bin/herdr`）。

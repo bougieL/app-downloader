@@ -101,6 +101,15 @@ npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-ag
 pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 @earendil-works/pi-coding-agent@latest
 ```
 
+## zsh 支持
+
+pi **没有 shell 补全**（上游仓库里没有 zsh/bash 补全脚本，CLI 也没有 `completion` 子命令），
+zsh 下只能靠 PATH 和 alias，没有按 Tab 补全。
+
+npm / pnpm 装的话，全局 bin 目录（mise 管的 node 在 `~/.local/share/mise/installs/node/<版本>/bin`，
+pnpm 全局在 `~/.local/share/pnpm`）要进 PATH；本机统一加在
+`~/.oh-my-zsh/custom/conf/project-cli.zsh` 里。详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - 两条版本线的包名不同（`@mariozechner/pi-coding-agent` vs `@earendil-works/pi-coding-agent`），

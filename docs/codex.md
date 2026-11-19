@@ -85,6 +85,19 @@ Could not detect the Codex installation method. Please update manually: https://
 
 这时按上表的「沿用该方式的更新命令」手动执行对应那一条。
 
+## zsh 支持
+
+codex 自带 zsh 补全：
+
+```bash
+codex completion zsh > ~/.local/share/zsh/site-functions/_codex
+```
+
+oh-my-zsh 也内置了 `codex` 插件，在 `~/.zshrc` 的 `plugins=(...)` 里加 `codex` 即可，
+它会自动生成并缓存补全（缓存放在 omz 的缓存目录），用不着手动生成。
+
+详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - standalone 安装按版本分目录存：`<codex 家目录>/packages/standalone/releases/<版本>-<目标平台>/`，

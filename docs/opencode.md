@@ -96,6 +96,18 @@ pnpm add -g --allow-build=@opencode/cli @opencode/cli
 
 `opencode upgrade --major` 做的是同一件事（先卸载 1.x，装 2.x 失败会回滚）。
 
+## zsh 支持
+
+oh-my-zsh 自带 `opencode` 插件，在 `~/.zshrc` 的 `plugins=(...)` 里加 `opencode` 即可：
+
+- 补全是**实时问 CLI** 的（内部调 `opencode --get-yargs-completions`），不落盘、不缓存，
+  候选跟着已安装的版本走；
+- 附带 alias：`opc`（开 TUI）、`opcc`（`--continue`）、`opcr`（`run`），
+  这几个 alias 也有补全；
+- 脚本安装的 opencode 在 `~/.opencode/bin/`，该目录要进 PATH。
+
+详见 `docs/oh-my-zsh.md`。
+
 ## 注意
 
 - 同一台机器上装过 1.x 和 2.x 会出现两个 `opencode`，用 `which -a opencode` 查重复安装。

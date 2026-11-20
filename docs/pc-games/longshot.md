@@ -50,11 +50,11 @@ nightly 未测试，可能弄坏存档和设置。
 ## 安装（Linux）
 
 ```bash
-mkdir -p ~/apps/longshot
+mkdir -p ~/.local/opt/longshot
 # Launcher（图形界面，负责构建和更新）
 gh release download <版本> --repo MagicBeanDev/LongshotLauncher \
-  --pattern 'LongshotLauncher-<版本>-x86_64.AppImage' --dir ~/apps/longshot --clobber
-chmod +x ~/apps/longshot/LongshotLauncher-<版本>-x86_64.AppImage
+  --pattern 'LongshotLauncher-<版本>-x86_64.AppImage' --dir ~/.local/opt/longshot --clobber
+chmod +x ~/.local/opt/longshot/LongshotLauncher-<版本>-x86_64.AppImage
 ```
 
 图形流程：启动 Launcher → 按 **Build** → 选渠道（Stable）→ 选游戏文件
@@ -103,8 +103,8 @@ chmod +x ~/apps/longshot/LongshotLauncher-<版本>-x86_64.AppImage
 - Fedora 45 / amd64，12 核，AMD Radeon RX 9070。
 - **游戏版本 v3.0.0**（`source=bd6a0cdd`），装在独立挂载点的 `Games/Longshot` 下
   （挂载点路径按本机情况替换）。
-  Builder `~/apps/longshot/Longshot-v3.0.0-x86_64.AppImage`，
-  Launcher `~/apps/longshot/LongshotLauncher-v1.0.0-x86_64.AppImage`（SHA256 都校验过）。
+  Builder `~/.local/opt/longshot/Longshot-v3.0.0-x86_64.AppImage`，
+  Launcher `~/.local/opt/longshot/LongshotLauncher-v1.0.0-x86_64.AppImage`（SHA256 都校验过）。
 - 从旧的 v3.0.0-rc.3 用 `--cli --update` 原地升级，**build 全部重做**：
   lift（1764 万条指令 100% 翻译，294522 个函数）→ 编译 → shader 准备
   （32390 条 pipeline，12 线程约 385 秒），整轮大约 25 分钟。

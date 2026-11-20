@@ -33,7 +33,7 @@ v0.4.1 又变回 `TotK-Setup-0.4.1-x86_64.AppImage`（版本号在前面、没�
 AppImage 免安装（推荐，不需要 sudo）：
 
 ```bash
-mkdir -p ~/Applications
+mkdir -p ~/.local/opt/totk-setup
 gh release download <tag> --repo valentderah/totk-pc-recomp \
   --pattern 'TotK-Setup-<版本>-x86_64.AppImage' --dir tmp/totk --clobber
 chmod +x tmp/totk/TotK-Setup-x86_64-<版本>-linux.AppImage
@@ -126,10 +126,10 @@ gh release download <新tag> --repo valentderah/totk-pc-recomp \
 
 # 2. 解出 Setup 目录（AppImage 里的安装器目录，后面 rebuild 模式要用）
 chmod +x tmp/totk/TotK-Setup-x86_64-<新版本>-linux.AppImage
-#    解压到 ~/Applications/TotK-Setup-<新版本>/
+#    解压到 ~/.local/opt/totk-setup/TotK-Setup-<新版本>/
 
 # 3. 在旧安装目录上跑新安装器（只需要 --dest）
-cd ~/Applications/TotK-Setup-<新版本>
+cd ~/.local/opt/totk-setup/TotK-Setup-<新版本>
 python -m installer --dest <游戏安装目录>
 ```
 
@@ -146,7 +146,7 @@ python -m installer --dest <游戏安装目录>
 ```bash
 cat <游戏安装目录>/totk-install.json | python3 -m json.tool | head -20
 cat <游戏安装目录>/build-cache/rebuild.txt
-ls ~/Applications/ | grep -i totk
+ls ~/.local/opt/totk-setup/ | grep -i totk
 ```
 
 判据：
@@ -154,7 +154,7 @@ ls ~/Applications/ | grep -i totk
 - 安装目录里有 `totk-install.json` → **Setup 安装器装的**（这是唯一的官方分发方式）。
   其 `release` 字段是当前版本（如 `0.3.1+ab1dee5`），`inputs` 记着本体和更新包的 sha256。
 - `build-cache/rebuild.txt` 里的路径指向当初那版 Setup 目录 → rebuild 依赖它。
-- `~/Applications/TotK-Setup-x86_64.AppImage` 是当初下载的安装器 AppImage。
+- `~/.local/opt/totk-setup/TotK-Setup-x86_64.AppImage` 是当初下载的安装器 AppImage。
 
 ## 更新
 
@@ -179,8 +179,8 @@ cp -a <游戏安装目录>/profile <游戏安装目录>/profile.bak
   （挂载点路径按本机情况替换）。
   **已从 v0.4.0（`0.4.0+7a37fc3`）更新到 v0.4.1（`0.4.1+6151ac4`）**，
   更新实测 446 秒，`totk --selftest` 0 failures 通过。
-  Setup 目录 `~/Applications/TotK-Setup-0.4.1/`（**rebuild 依赖，不能删**），
-  安装日志 `~/Applications/totk-install.log`。
+  Setup 目录 `~/.local/opt/totk-setup/TotK-Setup-0.4.1/`（**rebuild 依赖，不能删**），
+  安装日志 `~/.local/state/totk/totk-install.log`。
 - **本次更新实测各步耗时**（12 核，2026-11-20）：check 20 秒（校验 17GB romfs 哈希）、
   fonts 跳过（`shared-fonts/` 已在）、**extract 跳过**（"current"）、
   lift 44 秒、**compile 156 秒**、**prepare 225 秒**（46671 个 shader）、
@@ -196,8 +196,8 @@ cp -a <游戏安装目录>/profile <游戏安装目录>/profile.bak
 
   ```bash
   ./TotK-Setup-<版本>-x86_64.AppImage --appimage-extract
-  mv squashfs-root ~/Applications/TotK-Setup-<版本>/
-  cd ~/Applications/TotK-Setup-<版本>
+  mv squashfs-root ~/.local/opt/totk-setup/TotK-Setup-<版本>/
+  cd ~/.local/opt/totk-setup/TotK-Setup-<版本>
   ./python/bin/python3 -m installer --dest <游戏安装目录> --lang zh-Hans
   ```
 

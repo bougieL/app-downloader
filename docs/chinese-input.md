@@ -23,7 +23,7 @@ Fedora GNOME（Wayland）下的中文拼音输入法。GNOME 原生用 IBus 框�
 | 层 | 方式 | 识别特征 | 沿用该方式的更新命令 |
 | --- | --- | --- | --- |
 | 引擎 + 插件 | 系统包管理器（dnf） | `rpm -q ibus-rime` 能查到 | `sudo dnf upgrade ibus-rime librime-octagram librime-lua librime-predict` |
-| 输入方案 + 语法模型 | plum（`~/plum`） | `~/plum` 目录存在，`~/.config/ibus/rime/` 里有 `default.yaml` | 见下面「更新」 |
+| 输入方案 + 语法模型 | plum（临时工具，用完可删） | `~/.config/ibus/rime/` 里有 `default.yaml` | 见下面「更新」 |
 
 方案文件本身来自 GitHub（`iDvel/rime-ice`），但**不走 GitHub Release 下载安装包**，
 走 plum 的配方机制。
@@ -32,8 +32,7 @@ Fedora GNOME（Wayland）下的中文拼音输入法。GNOME 原生用 IBus 框�
 
 ```bash
 rpm -q ibus-rime librime-octagram    # 引擎层
-ls ~/plum/rime-install                 # 方案层
-ls ~/.config/ibus/rime/default.yaml    # 已部署的方案
+ls ~/.config/ibus/rime/default.yaml  # 方案层（已部署的雾凇拼音）
 ```
 
 判断不出来问用户，不要猜，也不要擅自换方式重装。
@@ -56,6 +55,9 @@ grep -E "octagram|lua|predict" /proc/$(pgrep -f ibus-engine-rime | head -1)/maps
 
 ## 安装（雾凇拼音方案）
 
+plum 是 rime 官方的「下载 + 打补丁」脚本，**只在施工时需要**，
+装完可以整个删掉（`~/plum` 连同里面 439 MB 的仓库克隆和语法模型副本）。
+
 ```bash
 git clone --depth 1 https://github.com/rime/plum.git ~/plum
 cd ~/plum
@@ -68,6 +70,9 @@ rime_dir="$HOME/.config/ibus/rime" bash rime-install iDvel/rime-ice
 cd ~/plum
 rime_dir="$HOME/.config/ibus/rime" bash rime-install iDvel/rime-ice:others/recipes/grammar:schema=rime_ice
 ```
+
+装完 `rm -rf ~/plum`：生效的配置全在 `~/.config/ibus/rime/`，跟 plum 目录没有软链关系，
+删掉不影响使用。
 
 配方做的事：下载 `wanxiang-lts-zh-hans.gram` 到用户目录，并生成 `rime_ice.custom.yaml`：
 
@@ -164,9 +169,10 @@ cd ~/.config/ibus/rime && rime_deployer --build .
 
 ## 更新
 
-方案层用 plum（**只更新方案，不动语法模型**）：
+方案层用 plum（**只更新方案，不动语法模型**）。plum 用完就删的话，先重新拉一份：
 
 ```bash
+[ -d ~/plum ] || git clone --depth 1 https://github.com/rime/plum.git ~/plum
 cd ~/plum
 rime_dir="$HOME/.config/ibus/rime" bash rime-install iDvel/rime-ice
 cd ~/.config/ibus/rime && rime_deployer --build .
@@ -176,9 +182,12 @@ cd ~/.config/ibus/rime && rime_deployer --build .
 覆盖前先备份自己加的补丁）：
 
 ```bash
+[ -d ~/plum ] || git clone --depth 1 https://github.com/rime/plum.git ~/plum
 cd ~/plum
 rime_dir="$HOME/.config/ibus/rime" bash rime-install iDvel/rime-ice:others/recipes/grammar:schema=rime_ice
 ```
+
+更新完可以再 `rm -rf ~/plum` 把它连同 439 MB 的副本一起清掉。
 
 引擎层：
 

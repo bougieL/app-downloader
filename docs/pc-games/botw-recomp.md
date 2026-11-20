@@ -32,7 +32,7 @@ AppImage 的启动画面是它自己的美术；玩家自己的图片放数据�
 AppImage 免安装（不需要 sudo）：
 
 ```bash
-mkdir -p ~/Applications
+mkdir -p ~/.local/opt/savagewind
 gh release download <tag> --repo Revivedx/SavageWindRecomp \
   --pattern 'Savage_Wind-<版本>-x86_64.AppImage' --dir tmp/savagewind --clobber
 chmod +x tmp/savagewind/Savage_Wind-<版本>-x86_64.AppImage
@@ -156,13 +156,13 @@ hactool -x -y --basenca=base.nca --section1=merged/romfs.bin update.nca
 ## 本机状态（2026-11-20 核实）
 
 - Fedora 45 / amd64，12 核（AVX2+FMA，走 v3 构建），AMD Radeon RX 9070（RADV）。
-- **用官方 AppImage 装**（`~/Applications/Savage_Wind-0.6.0-alpha.6-x86_64.AppImage`，
+- **用官方 AppImage 装**（`~/.local/opt/savagewind/Savage_Wind-0.6.0-alpha.6-x86_64.AppImage`，
   上游 v0.6.0-alpha.6）——AppImage 自带 zig cc 和 swgen，**不用装编译工具链**，
   也不需要 .NET / Python 依赖（本机就没装 gcc / clang / make）。
   用无窗口模式做首次 setup：
 
   ```bash
-  ~/Applications/Savage_Wind-<版本>-x86_64.AppImage --prepare --game <含 exefs/ 和 romfs/ 的目录>
+  ~/.local/opt/savagewind/Savage_Wind-<版本>-x86_64.AppImage --prepare --game <含 exefs/ 和 romfs/ 的目录>
   ```
 
   它自己拷贝游戏文件到 `~/.local/share/savagewind/extracted/` 并在本机编译游戏代码
@@ -170,10 +170,12 @@ hactool -x -y --basenca=base.nca --section1=merged/romfs.bin update.nca
   首次运行日志里 `romfs: version "1.9.0", 41062 files, 15129626830 bytes` 就是校验通过。
 - 游戏文件是本机自己解的 1.9.0（本体 XCI + 1.9.0 更新 NSP，hactool 合并 BKTR），
   加上卡带里的两个 DLC（aoc1 7094 文件、aoc2 1 文件，都是 3.0）。
-  解出来的文件放在 `~/sw-work/extracted/`（`exefs/` `romfs/` `aoc1/` `aoc2/`）。
+  解出来的临时目录（`exefs/` `romfs/` `aoc1/` `aoc2/`，约 30G）setup 拷完就可以删了；
+  留着的一份在 `~/.local/share/savagewind/extracted/`（17G）。
 - 之前是从源码构建的（`~/Projects/SavageWindRecomp`，基于上游 v0.5.1-alpha.5），
   那份源码目录和 `~/.local/share/savagewind` 已经不在了，等于从零重装。
   上游自带的 Linux 测试脚本：`tools/linux/test_run.sh`，
   `SAVAGEWIND_TEST_WARP=plateau` 可以跳到初始台地、`SAVAGEWIND_INPUT` 模拟按键。
 - 桌面入口：`~/.local/share/applications/savagewind.desktop`（右键还有
-  「Savage Wind Configuration」），图标在 `~/.local/share/icons/hicolor/`。
+  「Savage Wind Configuration」），图标在 `~/.local/share/icons/hicolor/`；
+  命令行入口 `~/.local/bin/savagewind`（软链到 AppImage）。

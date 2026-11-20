@@ -189,6 +189,43 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
   用 `--setopt=clean_requirements_on_remove=False` 也拦不住（硬依赖照样删）。
   确实还要用 Classic 就得连那几个扩展一起留着，或者之后重装 `gnome-classic-session`。
 
+- **Dock 图标上的角标（未读数）没有红底了**，只剩一个白色的数字：
+
+  红色圆角底色是 **Dash to Dock 自己扩展的 `stylesheet.css`** 画的，
+  不是 GNOME Shell 主题画的（shell 自带的 `gnome-shell-{dark,light,high-contrast}.css`
+  里根本没有 `.notification-badge` 这条规则，shell 主题 CSS 打包在
+  `/usr/share/gnome-shell/gnome-shell-theme.gresource` 里，用 `gresource`/`gjs` 拆出来才能查）：
+
+  ```css
+  #dashtodockContainer .notification-badge,
+  .overview-tile .notification-badge,
+  .icon-grid .notification-badge {
+    color: white;
+    background-color: red;
+    ...
+  }
+  ```
+
+  本机的原因：扩展目录里的 `stylesheet.css` 被改名成了 `stylesheet.css.bak`，
+  扩展基类只在存在 `stylesheet.css` 时才加载样式表，于是整份 d2d 样式都没生效
+  （角标数字还在，因为它只是文本；红底没了，因为那是 CSS 给的）。
+  查法：
+
+  ```bash
+  ls ~/.local/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com/stylesheet.css*
+  ```
+
+  修法：把文件改回原名，再让扩展重新加载（Wayland 下不用重登）：
+
+  ```bash
+  cd ~/.local/share/gnome-shell/extensions/dash-to-dock@micxgx.gmail.com
+  cp stylesheet.css.bak stylesheet.css
+  gnome-extensions disable dash-to-dock@micxgx.gmail.com
+  gnome-extensions enable  dash-to-dock@micxgx.gmail.com
+  ```
+
+  同理，任何扩展目录里被改名的 `stylesheet.css` 都会让该扩展「能用但没样式」。
+
 - **本机状态（2026-11-19 更新）**：Fedora 45 (Workstation) / x86_64 / GNOME Shell 51，
   扩展装在 `~/.local/share/gnome-shell/extensions/`，共 10 个：
 

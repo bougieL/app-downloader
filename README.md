@@ -55,6 +55,10 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 
 - [系统字体](docs/fonts.md)：全机统一的等宽/中文字体方案（Maple Mono Normal CN）、
   各应用的字体设置与 fontconfig 配置。
+- [GNOME 换主题](docs/gnome-themes.md)：GNOME 45+ 换主题的机制与踩坑记录。
+  **结论是本机不换**，保持原版 Adwaita；真要动外观优先改 icon / cursor / 壁纸。
+- [中文输入法](docs/chinese-input.md)：ibus-rime + 雾凇拼音（rime-ice）方案、
+  万象语法模型、用户词频学习、可配置项清单与更新方式。
 
 按场景分类的文档：
 

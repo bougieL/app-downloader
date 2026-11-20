@@ -4,6 +4,7 @@
 - 用户扩展目录：`~/.local/share/gnome-shell/extensions/<uuid>/`
 - 启用列表：dconf 键 `/org/gnome/shell/enabled-extensions`（`gsettings get org.gnome.shell enabled-extensions`）
 - 运行环境：Fedora 45 (Workstation) / x86_64 / GNOME Shell 51（Wayland）
+- 换主题另见 [gnome-themes.md](gnome-themes.md)（结论：本机不换）
 
 GNOME 扩展不走 GitHub Release，分发站是 extensions.gnome.org（下称 EGO），装在用户目录，不需要 sudo。
 
@@ -189,14 +190,13 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
   确实还要用 Classic 就得连那几个扩展一起留着，或者之后重装 `gnome-classic-session`。
 
 - **本机状态（2026-11-19 更新）**：Fedora 45 (Workstation) / x86_64 / GNOME Shell 51，
-  扩展装在 `~/.local/share/gnome-shell/extensions/`，共 11 个：
+  扩展装在 `~/.local/share/gnome-shell/extensions/`，共 10 个：
 
   | 扩展 | uuid |
   | --- | --- |
   | Dash to Dock | `dash-to-dock@micxgx.gmail.com` |
   | AppIndicator and KStatusNotifierItem Support | `appindicatorsupport@rgcjonas.gmail.com` |
   | Just Perfection | `just-perfection-desktop@just-perfection` |
-  | User Themes | `user-theme@gnome-shell-extensions.gcampax.github.com` |
   | Blur my Shell | `blur-my-shell@aunetx` |
   | Caffeine | `caffeine@patapon.info` |
   | Clipboard Indicator | `clipboard-indicator@tudmotu.com` |
@@ -204,6 +204,10 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
   | GSConnect | `gsconnect@andyholmes.github.io` |
   | Tiling Assistant | `tiling-assistant@leleat-on-github` |
   | Rounded Window Corners | `rounded-window-corners@fxgn` |
+
+  2026-11-21 卸掉了 **User Themes**（`user-theme@gnome-shell-extensions.gcampax.github.com`）：
+  试过 Lavanda / WhiteSur / Orchis 三套主题后确认 GNOME 45+ 换主题坑太多，
+  详见 [gnome-themes.md](gnome-themes.md)。
 
   扩展管理器：`com.mattjakeman.ExtensionManager` 0.7.0，Flatpak 用户级安装
   （`flatpak install --user`），运行时 `org.gnome.Platform/x86_64/51`。

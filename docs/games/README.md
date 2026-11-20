@@ -4,4 +4,4 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| [Steam](steam.md) | Flatpak 版 Steam 的音频链路、排查命令，以及游戏内滋滋声（爆音）的定位与修复 |
+| [Steam](steam.md) | Flatpak / 原生 RPM 两种安装方式、游戏库（含 NTFS 共享库）、音频链路与爆音排查 |

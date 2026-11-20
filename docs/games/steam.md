@@ -40,6 +40,81 @@ flatpak list | grep -i steam     # 有输出 = flatpak 版
 rpm -q steam                     # 有输出 = 原生 rpm 版
 ```
 
+## 游戏库放到其他磁盘
+
+库列表存在 `~/.local/share/Steam/config/libraryfolders.vdf`（老版本还有一份在
+`~/.local/share/Steam/steamapps/libraryfolders.vdf`），格式是「现代版」：
+
+```
+"libraryfolders"
+{
+	"0"
+	{
+		"path"		"/home/<user>/.local/share/Steam"
+		"label"		""
+		"contentid"		"4463664093771235504"
+		"totalsize"		"0"
+		"update_clean_bytes_tally"		"0"
+		"time_last_update_verified"		"0"
+		"apps"
+		{
+		}
+	}
+	"1"
+	{
+		"path"		"/mnt/kioxia/SteamLibrary"
+		...
+		"apps"
+		{
+			"1245620"		"72118286407"
+		}
+	}
+}
+```
+
+- `0` 是 Steam 客户端自己所在的目录，不要动；额外库从 `1` 开始编号。
+- `apps` 里是 appid → 字节数，写错 Steam 启动时会自己重扫 `steamapps/appmanifest_*.acf` 修正。
+- `contentid` 用目标库里 `libraryfolder.vdf` 的值；没有就随便填，Steam 会重新生成。
+
+改完重启 Steam，日志里出现这行说明认了：
+
+```bash
+grep ShareExistingSteamLibraries ~/.local/share/Steam/logs/console-linux.txt
+# ShareExistingSteamLibraries: sharing Steam libraries: /mnt/kioxia/SteamLibrary
+```
+
+也可以走 Steam 界面：下载 → Steam 库 → 添加库文件夹 → 选目录。两种方式等价。
+
+### 与 Windows 版共用同一个库目录
+
+Windows 版的 Steam 装在 `D:\Program Files (x86)\Steam`，库目录在 `D:\SteamLibrary`，
+Linux 下对应 `/mnt/kioxia/SteamLibrary`。同一个目录被两个系统共用时：
+
+- **游戏本体文件可以共用**，两边下载的 depots 通用，不用重复下几十 G。
+- **Proton 前缀（`steamapps/compatdata/<appid>`）也是共用的**，Windows 上建的 Wine 前缀会被
+  Linux 直接拿去用。前缀里的 Wine 版本和 Windows 上不一致时可能出问题，最坏情况是
+  删掉 `steamapps/compatdata/<appid>` 让 Linux 侧重建——但这样 Windows 那边也要重建。
+- **两边不要同时开同一个游戏**，共用前缀会互相覆盖。
+- **Linux 客户端会往 Windows 那边写东西**：实测它给 `appmanifest_*.acf` 补了 `SharedDepots`
+  字段，还在 `steamapps/common/` 下建了指向 Linux 客户端的 `Steam.dll` 符号链接。
+  共享目录不是只读的，改之前先备份。
+
+### 坑：库目录在 NTFS 上
+
+本机的 `/mnt/kioxia` 是 ntfs3 挂载（非 FAT/exFAT），实测：
+
+- **符号链接能用**（Steam 自己就在里面建了 `Steam.dll -> ...` 的软链），ntfs3 支持。
+- **可执行位能用**（`chmod +x` 生效），ntfs3 存了 POSIX mode。
+- 挂载参数是 `uid=1000,gid=1000,dmask=0022,fmask=0022`，新建文件默认 644，
+  依赖「目录里所有文件都默认可执行」的脚本类启动器要注意权限。
+- NTFS 大小写不敏感，个别游戏遇到文件冲突时要留意。
+
+### 新装游戏默认装到哪个库
+
+「默认安装位置」不是存在 `libraryfolders.vdf` 里，而是登录后的界面设置
+（下载 → Steam 库 → 目标库 → 设为默认），未登录时客户端根本没有这个用户配置。
+没设默认时，安装对话框里的「安装位置」下拉要手动选目标库。
+
 ## 音频链路
 
 Flatpak 版 Steam 跑 Windows 游戏时，声音要经过 Wine → PipeWire → ALSA → HDMI 四层：
@@ -175,6 +250,28 @@ flatpak run --command=sh com.valvesoftware.Steam -c 'echo $WINEDLLOVERRIDES'
 
 Proton 脚本用 `append_to_env_str(self.env, "WINEDLLOVERRIDES", s, ";")` 追加而非覆盖，
 所以这个 override 不会被 Proton 冲掉。
+
+**原生 RPM 版没有 flatpak override**，要设同样的环境变量有两条路：
+
+```bash
+# 1) 只对单个游戏生效：Steam → 右键游戏 → 属性 → 启动选项
+#    WINEDLLOVERRIDES=winepulse.drv=d %command%
+```
+
+```bash
+# 2) 对所有游戏生效：套一层启动脚本，再让桌面项指过去
+mkdir -p ~/.local/bin
+cat > ~/.local/bin/steam-nopulse <<'EOF'
+#!/bin/sh
+export WINEDLLOVERRIDES=winepulse.drv=d
+exec /usr/bin/steam "$@"
+EOF
+chmod +x ~/.local/bin/steam-nopulse
+
+# 桌面项复制一份改 Exec（注意原文件里有十几条 Exec 行，只改第一条主启动项）
+sed '0,/^Exec=\/usr\/bin\/steam %U/s//Exec=\/home\/<user>\/.local\/bin\/steam-nopulse %U/' \
+  /usr/share/applications/steam.desktop > ~/.local/share/applications/steam.desktop
+```
 
 **同时加大 PipeWire 兼容层缓冲**（缓解 jitter）：
 

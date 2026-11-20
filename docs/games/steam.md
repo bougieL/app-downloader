@@ -1,10 +1,44 @@
-# Steam（Linux / Flatpak）
+# Steam（Linux）
 
 - 应用 ID：`com.valvesoftware.Steam`（Flathub，flatpak 版）
 - 官网：https://store.steampowered.com
 - 相关上游：[Wine](https://www.winehq.org)、[Proton](https://github.com/ValveSoftware/Proton)
 
-本篇记录 Flatpak 版 Steam 在 Linux 上的音频链路，以及 2026-11 排查的「游戏内滋滋声（爆音）」问题。
+本篇记录两种安装方式（Flatpak / 原生 RPM）、原生 RPM 的音频链路，以及 2026-11 排查的
+「游戏内滋滋声（爆音）」问题。
+
+## 安装方式
+
+两种方式只选一种，同时装会出现两个同名命令、桌面项重复。
+
+### Flatpak 版
+
+```bash
+flatpak install flathub com.valvesoftware.Steam
+```
+
+沙箱隔离，宿主升级不影响它；但所有踩坑记录（音频链路、爆音修复）都是在这版上排查出来的。
+
+### 原生 RPM 版（Fedora）
+
+Steam 不是自由软件，Fedora 官方源里没有，要用 RPM Fusion 的 **nonfree-steam** 仓库：
+
+```bash
+# 仓库定义：/usr/share/dnf5/repos.d/rpmfusion-nonfree-steam.repo
+# 该文件归 rpmfusion-steam-release 包管，直接改会被系统更新覆盖，
+# 用 dnf5 的 override 机制改源（见 docs/mirrors.md）
+sudo dnf install steam
+```
+
+装的 rpm 只是个引导器，真正的客户端在**首次运行时从 Valve 下载**到 `~/.local/share/Steam`
+（约 3 GB，含 steamrt3 运行时），下载完才弹登录窗口。国内网络下这一步可能要几分钟。
+
+检测当前装的是哪种：
+
+```bash
+flatpak list | grep -i steam     # 有输出 = flatpak 版
+rpm -q steam                     # 有输出 = 原生 rpm 版
+```
 
 ## 音频链路
 

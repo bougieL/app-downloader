@@ -45,6 +45,8 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [Ghostty](docs/ghostty.md) | ghostty-org/ghostty | 桌面客户端 |
 | [Lichii](docs/pc-games/lichii.md) | zortos293/Lichii | 模拟器 |
 | [TotK Recomp](docs/pc-games/totk-recomp.md) | valentderah/totk-pc-recomp | 游戏重编译 |
+| [Savage Wind Recomp](docs/pc-games/botw-recomp.md) | Revivedx/SavageWindRecomp | 游戏重编译 |
+| [Longshot](docs/pc-games/longshot.md) | MagicBeanDev/Longshot（Forgejo） | 游戏重编译 |
 | [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
 | [Convey](docs/convey.md) | gitlab.gnome.org/donnybeelo/convey | 桌面客户端（邮件） |
 | [GNOME 扩展](docs/gnome-extensions.md) | extensions.gnome.org（非 GitHub Release） | 桌面增强 |
@@ -58,7 +60,7 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 
 - `docs/tv/`：电视端应用（Aerial TV、Moonlight、SmartTube 等）。
 - `docs/games/`：游戏相关（[Steam](docs/games/steam.md) 的音频链路与爆音修复等）。
-- `docs/pc-games/`：PC 上的主机游戏模拟器与游戏移植（[Lichii](docs/pc-games/lichii.md) 的 Release 资产规则与安装、[TotK Recomp](docs/pc-games/totk-recomp.md) 的 Setup 安装器与更新）。
+- `docs/pc-games/`：PC 上的主机游戏模拟器与游戏移植（[Lichii](docs/pc-games/lichii.md) 的 Release 资产规则与安装、[TotK Recomp](docs/pc-games/totk-recomp.md) 的 Setup 安装器与更新、[Savage Wind Recomp](docs/pc-games/botw-recomp.md) 与 [Longshot](docs/pc-games/longshot.md) 的静态重编译版）。
 
 个别项目不走 GitHub Release：Herdr CLI 同时提供安装脚本、brew、mise 等方式，
 细节见各自文档。VS Code 的 GitHub release 里也**没有任何二进制资产**，

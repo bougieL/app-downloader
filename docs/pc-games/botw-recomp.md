@@ -106,6 +106,37 @@ hactool -x -y --basenca=base.nca --section1=merged/romfs.bin update.nca
 - **keys 文件里的 17 字节值**：Lockpick 写的 `master_kek_source_*` /
   `mariko_master_kek_source_*` 是 16 字节密钥后面跟一个 NUL，hactool 只接受 16 字节，
   报 `Key (...) must be 32 hex digits!` 或直接退出。把尾部 NUL 去掉再给 hactool。
+- **1.9.0 更新包是 titlekey crypto，title.keys 里可能缺它的 rights id**：
+  本体 XCI 是 standard crypto（prod.keys 就能解），但 1.9.0 更新 NSP 的 NCA 是
+  `Encryption Type: Titlekey crypto`，`Rights ID: 01007EF00011E8000000000000000003`。
+  title.keys 里没有这条时，hactool 报
+  `[WARN]: Unable to match rights id to titlekey. Update title.keys?`，
+  解出来的 section 全是随机字节（`section 0 is corrupted!`）。
+  解决办法：把**旧的 title.keys 备份**里的条目合并进现在的 title.keys
+  （本机在 `Firmwares/title.keys.old-backup` 里就有这条：
+  `01007ef00011e8000000000000000003 = 2566d59be1cb9bfcc2c1b8c648b8ed0d`）。
+  合并后 NCA 里的 `.tik` 也能正常解析了。
+- **hactool 不展开 `~`**：`--exefsdir=~/sw-work/exefs` 这种写法它不报错，
+  但文件会**一个都存不下来**（日志里照样打 "Saving xxx to ~/..."）。
+  一律写绝对路径。
+- **更新 NCA 的 exefs 要分两步取**：更新包的 section 0 是个 PFS0，
+  `--exefsdir` 对它不生效（一个文件都不存）。先存成文件再当 PFS0 解：
+
+  ```bash
+  hactool -t nca --section0=section0.bin update.nca
+  hactool -t pfs0 --outdir=exefs/ section0.bin
+  ```
+
+  本体 NCA 可以一步到位：`hactool -t nca --exefsdir=exefs/ base.nca`。
+- **合并 RomFS 可以一步做完**：`--basenca=` 加上 `--romfsdir=` 会直接解出
+  合并后的文件树（41062 个文件），不用先落 `merged/romfs.bin` 再解一次：
+
+  ```bash
+  hactool -t nca -x -y --basenca=base.nca --romfsdir=extracted/romfs update.nca
+  ```
+- **Debian 13 的 Vulkan 头偏旧**（1.4.309，没有 `VK_KHR_unified_image_layouts`）：
+  上游已经兼容，反馈回路会退回 `ATTACHMENT_FEEDBACK_LOOP_OPTIMAL` 布局，功能不受影响。
+  （本机现在是 Fedora 45，Vulkan 头更新，这条只作参考。）
 - **更新包的标题 ID = 本体 ID + 0x800**（王国之泪那边同理）。
 - **游戏语言是区域语言**：`savagewind.ini` 里 `text_language = CNzh` / `TWzh` / `USen`……
   简体中文对应游戏自己的 `zh-Hans` / `zh-Hant` 两个代码，**不是** `zh-CN` / `zh-TW`——
@@ -122,14 +153,27 @@ hactool -x -y --basenca=base.nca --section1=merged/romfs.bin update.nca
   菜单卡顿（#688，0.5.0-alpha.5 的 RX 7600）、帧率上不去（#692）也有人在报。
 - **官方不提供也不接受游戏文件的分享**，issue 里贴游戏文件、密钥、生成代码的评论会被删。
 
-## 本机状态（2026-11-12 核实）
+## 本机状态（2026-11-20 核实）
 
-- Debian 13 (trixie) / amd64，12 核（AVX2+FMA，走 v3 构建），AMD Radeon RX 9070（RADV）。
-- 从源码构建（`~/Projects/SavageWindRecomp`，基于上游 v0.5.1-alpha.5），
-  游戏文件是本机自己解的 1.9.0（本体 XCI + 1.9.0 更新 NSP，hactool 合并），
-  `make gen` + `make -j` 通过：启动日志是
-  `[gamelib] ... (game version 1.9.0, 160 sites)`，画面与字幕正常，**60 fps**，
-  中文（`zh-Hans` → `Pack/Bootup_CNzh.pack`）。
-- 上游自带的 Linux 测试脚本：`tools/linux/test_run.sh`，
+- Fedora 45 / amd64，12 核（AVX2+FMA，走 v3 构建），AMD Radeon RX 9070（RADV）。
+- **用官方 AppImage 装**（`~/Applications/Savage_Wind-0.6.0-alpha.6-x86_64.AppImage`，
+  上游 v0.6.0-alpha.6）——AppImage 自带 zig cc 和 swgen，**不用装编译工具链**，
+  也不需要 .NET / Python 依赖（本机就没装 gcc / clang / make）。
+  用无窗口模式做首次 setup：
+
+  ```bash
+  ~/Applications/Savage_Wind-<版本>-x86_64.AppImage --prepare --game <含 exefs/ 和 romfs/ 的目录>
+  ```
+
+  它自己拷贝游戏文件到 `~/.local/share/savagewind/extracted/` 并在本机编译游戏代码
+  （本机 12 核 **195 秒**，产出 `swgame.so` 226M），最后打印「游戏文件已就绪」。
+  首次运行日志里 `romfs: version "1.9.0", 41062 files, 15129626830 bytes` 就是校验通过。
+- 游戏文件是本机自己解的 1.9.0（本体 XCI + 1.9.0 更新 NSP，hactool 合并 BKTR），
+  加上卡带里的两个 DLC（aoc1 7094 文件、aoc2 1 文件，都是 3.0）。
+  解出来的文件放在 `~/sw-work/extracted/`（`exefs/` `romfs/` `aoc1/` `aoc2/`）。
+- 之前是从源码构建的（`~/Projects/SavageWindRecomp`，基于上游 v0.5.1-alpha.5），
+  那份源码目录和 `~/.local/share/savagewind` 已经不在了，等于从零重装。
+  上游自带的 Linux 测试脚本：`tools/linux/test_run.sh`，
   `SAVAGEWIND_TEST_WARP=plateau` 可以跳到初始台地、`SAVAGEWIND_INPUT` 模拟按键。
-- 桌面入口：`~/.local/share/applications/savagewind.desktop`。
+- 桌面入口：`~/.local/share/applications/savagewind.desktop`（右键还有
+  「Savage Wind Configuration」），图标在 `~/.local/share/icons/hicolor/`。

@@ -16,12 +16,15 @@
 
 | 资产 | 说明 |
 | --- | --- |
-| `TotK-Setup-x86_64-<版本>-linux.AppImage` | Linux amd64 安装器（自包含）|
+| `TotK-Setup-<版本>-x86_64.AppImage` | Linux amd64 安装器（自包含）|
+| `TotK-Setup-<版本>-x86_64-pgo.AppImage` | Linux amd64 安装器（PGO 优化版，文件名多 `-pgo`）|
 | `TotK-Setup-<版本>-windows.zip` | Windows 安装器（就地解压）|
 
 **注意资产命名在版本间变过**：v0.3.1 是 `TotK-Setup-0.3.1-x86_64.AppImage`（版本号在中间），
-v0.3.13 改成了 `TotK-Setup-x86_64-0.3.13-linux.AppImage`（版本号在后面、多了 `-linux`）。
-写脚本别把旧命名硬编码进去。
+v0.3.13 改成了 `TotK-Setup-x86_64-0.3.13-linux.AppImage`（版本号在后面、多了 `-linux`），
+v0.4.1 又变回 `TotK-Setup-0.4.1-x86_64.AppImage`（版本号在前面、没有 `-linux`）。
+写脚本别把旧命名硬编码进去，下 release 先看资产列表：
+`gh api repos/valentderah/totk-pc-recomp/releases --jq '.[0].assets[].name'`。
 
 ## 安装（按平台）
 
@@ -32,7 +35,7 @@ AppImage 免安装（推荐，不需要 sudo）：
 ```bash
 mkdir -p ~/Applications
 gh release download <tag> --repo valentderah/totk-pc-recomp \
-  --pattern 'TotK-Setup-x86_64-<版本>-linux.AppImage' --dir tmp/totk --clobber
+  --pattern 'TotK-Setup-<版本>-x86_64.AppImage' --dir tmp/totk --clobber
 chmod +x tmp/totk/TotK-Setup-x86_64-<版本>-linux.AppImage
 ```
 
@@ -171,23 +174,34 @@ cp -a <游戏安装目录>/profile <游戏安装目录>/profile.bak
 
 ## 注意
 
-- **本机状态（2026-11-09 核实）**：Debian 13 (trixie) / amd64（12 核，有 AVX2+FMA，
-  走 **v3** 构建），游戏装在一个独立挂载点的 `Games/TotK-Recomp` 下（挂载点路径按本机情况替换）。
-  **已从 v0.3.1（`0.3.1+ab1dee5`）更新到 v0.3.13（`0.3.13+ae30a61`）**，
-  更新实测 486 秒，`totk --selftest` 0 failures 通过。
-  Setup 目录 `~/Applications/TotK-Setup-0.3.13/`（**rebuild 依赖，不能删**），
-  安装器 AppImage `~/Applications/TotK-Setup-x86_64-0.3.13-linux.AppImage`，
+- **本机状态（2026-11-20 核实）**：Fedora 45 / amd64（12 核，有 AVX2+FMA，
+  走 **v3** 构建），AMD Radeon RX 9070（RADV），游戏装在一个独立挂载点的 `Games/TotK-Recomp` 下
+  （挂载点路径按本机情况替换）。
+  **已从 v0.4.0（`0.4.0+7a37fc3`）更新到 v0.4.1（`0.4.1+6151ac4`）**，
+  更新实测 446 秒，`totk --selftest` 0 failures 通过。
+  Setup 目录 `~/Applications/TotK-Setup-0.4.1/`（**rebuild 依赖，不能删**），
   安装日志 `~/Applications/totk-install.log`。
-- **本次更新实测各步耗时**（12 核）：check 7 秒（校验 17GB romfs 哈希）、
-  fonts 0 秒（`shared-fonts/` 已在，跳过）、**extract 跳过**（"current"）、
-  lift 36 秒、**compile 170 秒**、**prepare 272 秒**（46671 个 shader）。
+- **本次更新实测各步耗时**（12 核，2026-11-20）：check 20 秒（校验 17GB romfs 哈希）、
+  fonts 跳过（`shared-fonts/` 已在）、**extract 跳过**（"current"）、
+  lift 44 秒、**compile 156 秒**、**prepare 225 秒**（46671 个 shader）、
+  pc_prompts / shapes / cleanup 各 0 秒。
   也就是说更新只需重编 + 重做 shader，不必重新解 17GB 游戏文件。
-- **更新前先备份了 `profile/` 和 `totk.ini`**（各留一份 `.bak-2026-11-09`），
-  更新后确认存档文件 mtime/大小都没变、`totk.ini` 逐字节相同。
-- **`build-cache/rebuild.txt` 里的路径要改成 Setup 目录的永久位置**：
+- **更新前先备份了 `profile/` 和 `totk.ini`**（各留一份 `.bak-2026-11-20`），
+  更新后 `diff -r` 确认存档逐字节没变、`totk.ini` 逐字节相同。
+- **`build-cache/rebuild.txt` 里的路径要指向 Setup 目录的永久位置**：
   安装器写的是**当时运行安装器的那份解压目录**，直接从临时目录跑的话，
   临时目录清掉后 mod 的 code cheat 重建就废了。
-  更新时把里面的路径从临时解压目录改成新的 `~/Applications/TotK-Setup-<版本>/`。
+  稳妥做法是**先把 Setup AppImage 解包到永久目录**再从那儿跑安装器，
+  这样 `rebuild.txt` 里的路径一开始就对，不用手改：
+
+  ```bash
+  ./TotK-Setup-<版本>-x86_64.AppImage --appimage-extract
+  mv squashfs-root ~/Applications/TotK-Setup-<版本>/
+  cd ~/Applications/TotK-Setup-<版本>
+  ./python/bin/python3 -m installer --dest <游戏安装目录> --lang zh-Hans
+  ```
+
+  （安装器自带 `python/`（3.14）和 `bin/hactool`，不用系统装 Python 或 .NET。）
 - **本体 XCI 和更新 NSP 的文件名都被截断过**：本体是
   `TOTK [0100F2C0115B6000][v0].xci`，更新包是
   `The Legend of Zelda Tears of the Kingdom v1.4.3 [0100F2C0115.nsp`

@@ -205,3 +205,9 @@ herdr completion zsh > ~/.local/share/zsh/site-functions/_herdr
 
   清单里 `sha256.linux-x86_64` 的值应该一致（2026-11-18 装的 0.9.5 对得上）。
 - 在 Fedora 45 上实测正常（2026-11-18，装的是 0.9.5，装在 `~/.local/bin/herdr`）。
+- **本机状态（2026-11-21 重装）**：**官方安装脚本装的**
+  （`curl -fsSL https://herdr.dev/install.sh | sh`），版本 0.9.5，
+  真实路径 `~/.local/bin/herdr`（普通文件，不是软链）。
+  更新用 `herdr update`。
+  脚本下载 release 资产时可能因为节点不稳失败（报 `curl: (56)`），
+  重跑一次脚本即可。

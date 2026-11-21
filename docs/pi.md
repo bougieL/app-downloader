@@ -16,7 +16,7 @@ pi 没有"标准安装方式"，下面每种都有人用。**装的时候选了�
 | --- | --- | --- |
 | 官方安装脚本 | agent 目录里有 `managed-install.json` 标记 | `pi update`（脚本装的内部仍是 npm 那条路） |
 | npm | 包目录路径含 `/npm/` 或 `/node_modules/` | `npm install -g --ignore-scripts --min-release-age=0 <包名>@latest` |
-| pnpm | 包目录路径含 `/pnpm/` 或 `/.pnpm/` | `pnpm install -g --ignore-scripts --config.minimumReleaseAge=0 <包名>@latest` |
+| pnpm | 包目录路径含 `/pnpm/` 或 `/.pnpm/` | `pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 <包名>@latest` |
 | bun | 包目录路径含 `/install/global/node_modules/`，或运行时是 bun | `bun install -g --ignore-scripts --minimum-release-age=0 <包名>@latest` |
 | yarn | 包目录路径含 `/yarn/` 或 `/.yarn/` | `yarn global add --ignore-scripts <包名>@latest` |
 | nix | `nix profile` 里注册了 pi | `nix profile upgrade pi` |
@@ -147,3 +147,22 @@ pnpm 全局在 `~/.local/share/pnpm`）要进 PATH；本机统一加在
   实测从 1.5.0 升到 1.5.2，用的是
   `mise exec -- npm install -g --ignore-scripts --min-release-age=0 @earendil-works/pi-coding-agent@latest`；
   不带 `--min-release-age=0` 时会卡在 1.5.0。
+
+- **本机状态（2026-11-21 重装）**：仍是 **npm 装的**，mise 管的 node 升到 **22.23.5**，
+  pi 装的是 **1.6.0**，安装命令同上（`mise exec -- npm install -g --ignore-scripts
+  --min-release-age=0 @earendil-works/pi-coding-agent@latest`）。
+  pi 没有 shell 补全，PATH 靠 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 生效。
+
+- **本机状态（2026-11-21 迁到 pnpm）**：改成 **pnpm 装的**。
+  npm 全局那份额外的 `@earendil-works/pi-coding-agent` 已用 `npm rm -g` 删掉，
+  `~/.local/share/mise/installs/node/22.23.5/bin/pi` 这个 npm shim 也没了，
+  现在 `pi` 唯一来自 pnpm 全局（`~/.local/share/pnpm/bin/pi`，版本仍是 **1.6.0**）。
+  以后更新用：
+
+  ```bash
+  pnpm add -g --ignore-scripts --config.minimumReleaseAge=0 @earendil-works/pi-coding-agent@latest
+  ```
+
+  注意 npm 全局列表里剩下的 `npm` 和 `corepack` 是 **Node.js 发行版自带的**
+  （就在 node 安装目录的 `lib/node_modules` 里），不是用 npm 装的用户包，
+  迁到 pnpm 也没意义——它们本来就是 node 的一部分。

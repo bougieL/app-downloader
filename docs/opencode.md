@@ -112,6 +112,18 @@ oh-my-zsh 自带 `opencode` 插件，在 `~/.zshrc` 的 `plugins=(...)` 里加 `
 
 - 同一台机器上装过 1.x 和 2.x 会出现两个 `opencode`，用 `which -a opencode` 查重复安装。
 - 升级前退出正在运行的 opencode 会话。
+- **本机状态（2026-11-21 装）**：**安装脚本装的**（`https://opencode.ai/v2/install`），
+  版本 2.3.2，真实路径 `~/.opencode/bin/opencode`（不是软链，是独立二进制）。
+  所以更新走「重新跑安装脚本」那一条，即：
+
+  ```bash
+  curl -fsSL https://opencode.ai/v2/install | bash
+  ```
+
+  这个脚本自己会认安装位置并原地替换，**不要**改用 `opencode upgrade`，
+  也不要用 pnpm/npm 装（会跟脚本装的那份抢同一个命令名）。
+  `~/.opencode/bin` 要在 PATH 里，本机由
+  `~/.oh-my-zsh/custom/conf/project-cli.zsh` 统一管理。
 
 ## 桌面客户端（与 CLI 是两套东西）
 
@@ -119,8 +131,26 @@ OpenCode 另有官方桌面客户端（Electron 应用），和 CLI **是彼此�
 
 | | 安装方式 | 位置 |
 | --- | --- | --- |
-| 桌面客户端 | GitHub Release 的 `.deb`（`dpkg -i` 安装） | `/opt/OpenCode/`，dpkg 包名 `opencode` |
+| 桌面客户端 | 官方提供的 `.rpm` / `.deb` / `.AppImage` 三选一 | `/opt/OpenCode/`，包名 `opencode` |
 | CLI | 见上面的安装方式清单 | `~/.opencode/bin/` 等 |
+
+桌面端官方下载地址（自动更新器用的也是这三个 URL）：
+
+```
+https://opencode.ai/files/bin/<版本>/opencode-desktop-linux-x86_64.rpm
+https://opencode.ai/files/bin/<版本>/opencode-desktop-linux-amd64.deb
+https://opencode.ai/files/bin/<版本>/opencode-desktop-linux-x86_64.AppImage
+```
+
+按发行版选：Fedora/RHEL 系用 `.rpm`（`sudo dnf install -y <包>`），
+Debian/Ubuntu 系用 `.deb`（`sudo dpkg -i <包>`），想免安装就用 `.AppImage`。
+本机是 Fedora 45，装的是 rpm 包 `opencode`。
+
+**本机状态（2026-11-21）**：rpm 包 `opencode` 版本 2.3.2，装在 `/opt/OpenCode/`，
+主程序 `/opt/OpenCode/ai.opencode`，自带 CLI 在 `/opt/OpenCode/resources/opencode-cli`。
+桌面端自带自动更新（1.x 时代是 Electron 独立进程，会从 1.19.6 直升 2.3.2，
+用 `pkexec` 调 `dnf install` 完成），更新完要**完全退出再重开**，
+否则还在跑旧版本的代码。
 
 两者会共用同一批数据目录，卸载时别连 CLI 一起删了：
 
@@ -131,17 +161,19 @@ OpenCode 另有官方桌面客户端（Electron 应用），和 CLI **是彼此�
 | `~/.local/state/opencode/` | CLI | **保留** |
 | `~/.cache/opencode/` | CLI | **保留** |
 | `~/.config/ai.opencode.desktop/` | 桌面端（Electron userData） | 删除 |
-| `~/.cache/@opencode-aidesktop-updater/` | 桌面端（自动更新缓存） | 删除 |
+| `~/.cache/@opencode-aidesktop-updater*/` | 桌面端（自动更新缓存） | 删除 |
 
-彻底卸载桌面端（`sudo` 只用于前两步）：
+彻底卸载桌面端（`sudo` 只用于第一条）：
 
 ```bash
-sudo dpkg --purge opencode        # 移除 /opt/OpenCode、桌面项、图标
+sudo dnf remove opencode          # Fedora：移除 /opt/OpenCode、桌面项、图标
 rm -rf ~/.config/ai.opencode.desktop
-rm -rf ~/.cache/@opencode-aidesktop-updater
+rm -rf ~/.cache/@opencode-aidesktop-updater*
 ```
 
-`dpkg --purge` 会顺带清掉 `/usr/share/applications/` 下的 `ai.opencode.desktop.desktop`
+Debian/Ubuntu 上把第一条换成 `sudo dpkg --purge opencode`，效果相同。
+
+包管理器会顺带清掉 `/usr/share/applications/` 下的 `ai.opencode.desktop.desktop`
 和 `opencode-desktop.desktop` 两个桌面项，以及 hicolor 图标主题里的图标，
 所以卸载后不需要手动清理菜单图标。
 
@@ -153,14 +185,72 @@ find ~/.cache/gnome-software/odrs -maxdepth 1 -iname '*opencode*' -delete
 find ~/.cache/gnome-software/icons -maxdepth 1 -iname '*ai.opencode*' -delete
 ```
 
-当初 `dpkg -i` 用的 `.deb` 安装包常留在 `~/下载/`，卸载后确认不再需要可手动删除
+当初下载的安装包常留在 `~/下载/`，卸载后确认不再需要可手动删除
 （属于用户文件，脚本不要自动删）。
 
 卸载完验证桌面端已清干净、CLI 仍可用：
 
 ```bash
-dpkg -l opencode | grep '^ii'            # 应无输出
-[ -e /opt/OpenCode ]                      # 应不存在
-opencode --version                        # CLI 应仍能输出版本
-pnpm ls -g --depth=0 | grep opencode      # CLI 包应仍在
+rpm -q opencode                     # 应报「未安装」（Debian 上用 dpkg -l opencode）
+[ -e /opt/OpenCode ]                # 应不存在
+opencode --version                  # CLI 应仍能输出版本
 ```
+
+## 桌面端打不开：后台服务端口被占
+
+**现象**：点桌面图标没反应，或者窗口开了但是一片空白/报错，日志里 renderer 报致命错误。
+
+**定位**：桌面端不是自己算活，它会拉起一个后台 CLI 服务（`opencode-cli serve --service`），
+再让渲染进程连这个服务。服务起不来，窗口就是死的。看日志：
+
+```bash
+ls -t ~/.config/ai.opencode.desktop/logs/ | head -1     # 最近一次会话的目录
+cat ~/.config/ai.opencode.desktop/logs/<那次目录>/renderer.log
+cat ~/.config/ai.opencode.desktop/logs/<那次目录>/main.log
+```
+
+renderer.log 里出现下面这段就是端口冲突：
+
+```
+fatal renderer error ... Desktop IPC handler failed
+Server process exited with code 1
+Error: Managed service port 49374 on 127.0.0.1 is already in use by PID <pid> (...)
+```
+
+main.log 里正常应该是 `v2 CLI background service ready { url: 'http://127.0.0.1:<port>' }`；
+只看到 `starting { reason: 'missing' }` 却没有 `ready`，就是服务没起来。
+
+**原因**：托管服务的注册信息记在 `~/.local/state/opencode/service.json`（里面写了 url 和 pid），
+桌面端启动时按这份记录去连。如果记录里的那个进程还活着、但占着端口的其实是别的
+（比如上次调试时用 `XDG_CONFIG_HOME` 指向临时目录起的后台服务，进程被漏掉了），
+桌面端自己再拉一个服务就会撞端口，直接退出。
+
+**解决**：先确认端口被谁占着，再决定杀谁：
+
+```bash
+ss -tlnp | grep 49374            # 看占用进程；端口号以日志里的为准
+ps -fp <pid>                     # 确认这个进程是不是该留的
+```
+
+如果是不该留的残留进程，杀掉它并删掉过期的注册信息，再重开桌面端：
+
+```bash
+kill <pid>
+rm -f ~/.local/state/opencode/service.json
+```
+
+重开后验证（应当有 `ready` 且端口由新进程监听）：
+
+```bash
+opencode service status           # 应输出 http://127.0.0.1:<port>
+ss -tlnp | grep opencode-cli      # 监听进程应是当前这次启动的
+```
+
+**注意**：
+
+- 端口号不是固定的，是每次启动随机挑的，报错信息里的端口才是要处理的那个。
+- 调试时用 `XDG_CONFIG_HOME` 指向临时目录启动桌面端，会在真实目录留下
+  `~/.config/ai.opencode.desktop/opencode/service.json`（`XDG_STATE_HOME` 被指向真实目录时），
+  这份记录同样会造成「记录里的 pid 已死、端口还被占」的假象，排查完要一并清掉。
+- 排查用的临时目录（`/tmp/opencode/xdgtest` 之类）用完要删，
+  里面跑起来的后台服务容易变成没人管的孤儿进程。

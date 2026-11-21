@@ -150,3 +150,22 @@ mise completion zsh > ~/.local/share/zsh/site-functions/_mise
 
 - Fedora 上用 `dnf` 装别的东西时，如果 mise 里有同名工具，`mise exec -- <命令>` 可以在
   不改全局 PATH 的情况下临时用 mise 里那份。
+
+- **官方安装脚本不会自己写 shell 配置**（2026-11 实测）：
+  脚本装完只打印一行提示，让你自己把 `eval "$(mise activate bash)"` 写进 `~/.bashrc`。
+  zsh 也要单独写 `eval "$(mise activate zsh)"`，漏了的话 mise 装的工具在交互 shell 里全找不到。
+
+- **mise 装工具时也要能出网**（2026-11 实测）：
+  mise 的 aqua /ubi 后端要访问 GitHub Releases，网络不通时会卡在 `verifying` 或 `downloading`。
+  出网走本机代理时，把代理环境变量传给 mise：
+
+  ```bash
+  https_proxy=http://127.0.0.1:<代理端口> http_proxy=http://127.0.0.1:<代理端口> \
+    mise use -g gh
+  ```
+
+- **本机状态（2026-11-21 装）**：**官方安装脚本装的**（`curl https://mise.run | sh`），
+  真实路径 `~/.local/bin/mise`，版本 2026.11.10。
+  更新用 `mise self-update`。
+  mise 管的工具：`pnpm`、`node@22`、`gh`、`fzf`、`zoxide`、`eza`、`fd`、`ripgrep`。
+  配置在 `~/.config/mise/config.toml`。

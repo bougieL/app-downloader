@@ -82,6 +82,23 @@ git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git \
   ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
 ```
 
+**fzf-tab 不在 `zsh-users` 组织下了**（2026-11 实测）：`https://github.com/zsh-users/fzf-tab`
+返回 404，git 会报
+
+```
+could not read Username for 'https://github.com': 没有那个设备或地址
+```
+
+（404 的仓库对 git 来说等于「要认证」，不是「找不到」的提示，很容易看错。）
+现在的上游是 **`Aloxaf/fzf-tab`**：
+
+```bash
+git clone --depth=1 https://github.com/Aloxaf/fzf-tab.git \
+  ~/.oh-my-zsh/custom/plugins/fzf-tab
+```
+
+仓库搬家后更新方式不变（当初是 git clone，还是 `git -C ... pull`）。
+
 更新第三方插件（**沿用当初的安装方式**，这里当初就是 git clone，所以还是 git）：
 
 ```bash
@@ -101,6 +118,9 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
 - 自定义文件：`~/.oh-my-zsh/custom/aliases.zsh`（alias，omz 自动加载）、
   `~/.oh-my-zsh/custom/conf/project-cli.zsh`（本项目 CLI 工具的 PATH 与补全，
   在 `source $ZSH/oh-my-zsh.sh` **之前**手动 source，见下）。
+- `~/.zshrc` 的顺序：mise 激活 → project-cli.zsh → omz 主体 → fpath + `compinit -u`。
+  **mise 必须在最前面**：补全生成要调 `gh`、`pnpm` 这些 mise 管的命令，
+  PATH 上先得有它们。
 
 ## 本项目 CLI 工具的 zsh 支持
 
@@ -109,7 +129,8 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
 
 1. **PATH**：把各工具的安装目录加进 `path`——
    `~/.local/bin`（脚本安装的 claude / herdr / herdr-core 等）、`~/.opencode/bin`、
-   `~/.local/share/pnpm`（pnpm 全局包）、`~/.cargo/bin`，再加上 mise 的 shims。
+   `~/.local/share/pnpm/bin`（pnpm 全局包的可执行文件）、`~/.cargo/bin`，
+   再加上 mise 的 shims。
 2. **补全**：把工具生成的补全写到 `~/.local/share/zsh/site-functions/_<命令>`，
    该目录在 `fpath` 里，由 `compinit` 自动注册。
 
@@ -117,6 +138,7 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
 | --- | --- | --- |
 | `gh` | `gh completion -s zsh` | mise 装 |
 | `mise` | `mise completion zsh` | mise 装 |
+| `pnpm` | `pnpm completion zsh` | mise 装 |
 | `herdr` | `herdr completion zsh` | 官方脚本装 |
 | `tailscale` | `tailscale completion zsh` | dnf 装 |
 | `codex` | omz 内置 `codex` 插件 | 自动生成到 omz 缓存目录 |
@@ -126,6 +148,8 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
 
 新装一个工具时：在该文件的 `_PROJECT_CLI_COMPLETIONS` 表里加一行
 `工具名 '生成补全的命令'`，补全文件会在下次开 shell 时自动生成（可执行文件比补全文件新时才重新生成）。
+
+生成补全的命令不存在时（比如工具没装）会跳过，不会报错。
 
 ## 注意
 
@@ -138,7 +162,23 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
   fpath=("$HOME/.oh-my-zsh/custom/plugins/zsh-completions/src" $fpath)
   ```
 
-  另一个办法是在插件加载完再跑一次 `compinit`，但会多花启动时间。
+  **光加 `fpath` 还不够**，2026-11 实测：`compinit` 已经跑完了，
+  之后往 `fpath` 里塞目录不会让那些补全函数注册上，
+  症状是「`zsh-completions` 明明装了，按 Tab 一点反应都没有」。
+  得在插件加载完**再跑一次 `compinit`**：
+
+  ```zsh
+  fpath=("$HOME/.oh-my-zsh/custom/plugins/zsh-completions/src" $fpath)
+  compinit -u
+  ```
+
+  `compinit -u` 会复用 omz 的 `zcompdump` 缓存，多花的时间是毫秒级，可以接受。
+  验证某个补全到底注册上没有：
+
+  ```zsh
+  zsh -ic 'whence -w _git'      # 有输出 = 已注册
+  zsh -ic 'print -l $fpath' | head
+  ```
 
 - **补全文件名必须以 `_` 开头。** `compinit` 只扫 fpath 里 `_#?*` 的文件，
   写成 `gh` 不会被当成补全函数，症状是「补全文件在，但按 Tab 没反应」。
@@ -166,6 +206,18 @@ git -C ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions pull
 
 - **mise 必须在生成补全之前激活。** `gh` 是 mise 管的，PATH 上先得有它，
   `command -v gh` 才找得到，所以 mise 的激活放在最前面。
+
+- **PATH 里要加的是 pnpm 的 `bin/` 子目录，不是 pnpm 的根目录**（2026-11 实测）：
+  pnpm 的全局**包**在 `~/.local/share/pnpm/global/`，全局**命令**在
+  `~/.local/share/pnpm/bin/`。只把 `~/.local/share/pnpm` 加进 `path` 的话，
+  `claude`、`codex`、`mmx`、`codebuddy` 这些命令一个都找不到
+  （症状：zsh 下 `command -v claude` 空，但 pnpm 全局列表里明明有）。
+  验证：
+
+  ```zsh
+  zsh -ic 'command -v claude'      # 要有输出
+  zsh -ic 'for c in claude codex mmx codebuddy; do command -v $c || echo "MISSING $c"; done'
+  ```
 
 - 卸载：omz 自带卸载脚本 `~/.oh-my-zsh/tools/uninstall.sh`；
   只想去掉某个第三方插件，删掉 `~/.oh-my-zsh/custom/plugins/<名字>` 再从 `~/.zshrc` 的

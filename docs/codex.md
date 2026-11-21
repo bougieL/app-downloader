@@ -14,7 +14,7 @@ codex 没有"标准安装方式"，下面每种都有人用。**装的时候选�
 | --- | --- | --- |
 | standalone 安装脚本 | 真实路径含 `packages/standalone/` | `sh -c 's=$(curl -fsSL https://chatgpt.com/codex/install.sh) && CODEX_NON_INTERACTIVE=1 eval "$s"'` |
 | npm | 全局列表里有 `@openai/codex` | `npm install -g @openai/codex@latest` |
-| pnpm | 全局列表里有 `@openai/codex` | `pnpm add -g @openai/codex@latest` |
+| pnpm | 全局列表里有 `@openai/codex` | `pnpm add -g @openai/codex@latest`（pnpm 装要带 `--allow-build`，见下） |
 | bun | 全局列表里有 `@openai/codex` | `bun install -g @openai/codex@latest` |
 | brew | macOS 上真实路径在 `/opt/homebrew` 或 `/usr/local` 下 | `brew upgrade --cask codex` |
 | 手动放二进制 | 真实路径不匹配上面任何一项 | 自己替换二进制文件 |
@@ -105,6 +105,25 @@ oh-my-zsh 也内置了 `codex` 插件，在 `~/.zshrc` 的 `plugins=(...)` 里�
 - npm/pnpm/bun 装的 `@openai/codex` 里 `codex.js` 只是 shim，真正的二进制在同包的 `vendor/` 下。
 - 升级前退出正在运行的 codex 会话。
 
+- **standalone 的安装脚本在部分网络下拉不到**（2026-11 实测）：
+  `https://chatgpt.com/codex/install.sh` 直连不通时，脚本第一步就失败：
+
+  ```
+  curl: (35) TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
+  ```
+
+  反复重试无效（同一个出口 IP 被拒）。这时改用 pnpm 装，功能一样：
+
+  ```bash
+  pnpm add -g --config.minimumReleaseAge=0 --allow-build=@openai/codex \
+    @openai/codex@latest
+  ```
+
+  **pnpm 装必须带 `--allow-build`**：codex 的原生二进制同样靠 postinstall 就位，
+  pnpm 12 默认不跑依赖的 build 脚本，不带这个参数装完 `codex --version` 会报找不到二进制。
+  另外 pnpm 12 的发布时间闸门会挡住刚发布的版本，
+  `--config.minimumReleaseAge=0` 用来关掉它（**不要**写成 `--min-release-age=0`）。
+
 - **standalone 更新的安装脚本要从 `https://chatgpt.com/codex/install.sh` 拉取，直连不通时要显式走代理**：
 
   ```bash
@@ -131,3 +150,9 @@ oh-my-zsh 也内置了 `codex` 插件，在 `~/.zshrc` 的 `plugins=(...)` 里�
   `gh api repos/openai/codex/releases/latest --jq .tag_name` 拿到 `rust-v<版本>`，
   和 `codex --version` 对上就说明本来就已是最新，不用重试。本机当时是 0.167.0，
   上游最新也是 `rust-v0.167.0`，属于这种情况。
+
+- **本机状态（2026-11-21 装）**：**pnpm 装的**（`~/.local/share/pnpm/global/v11`），
+  版本 0.171.0，可执行文件在 `~/.local/share/pnpm/bin/codex`。
+  当初选 pnpm 而不是 standalone 脚本，是因为这台机器的网络下
+  `chatgpt.com/codex/install.sh` 拉不下来。
+  补全走 oh-my-zsh 内置的 `codex` 插件（自动生成，不用手动跑）。

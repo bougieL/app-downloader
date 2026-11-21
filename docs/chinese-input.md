@@ -74,6 +74,25 @@ rime_dir="$HOME/.config/ibus/rime" bash rime-install iDvel/rime-ice:others/recip
 装完 `rm -rf ~/plum`：生效的配置全在 `~/.config/ibus/rime/`，跟 plum 目录没有软链关系，
 删掉不影响使用。
 
+### 配方不会跳过已下载的语法模型（2026-11 实测）
+
+想省时间的话，可以**先手动把 `wanxiang-lts-zh-hans.gram` 下到用户目录**，
+再跑配方只让它生成 `rime_ice.custom.yaml`：
+
+```bash
+cd ~/.config/ibus/rime
+curl -fL --retry 3 -C - -o wanxiang-lts-zh-hans.gram \
+  https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram
+```
+
+**但这样跑配方，plum 还是会把整个文件重新下一遍**（实测又下了 373 MB，
+`download_files` 那步无条件执行）。所以手动预下载**并不能省时间**，
+只是失败时能断点续传。配方跑完看到 `Patching: rime_ice.custom.yaml` +
+`No files updated.` 是正常的——意思是「配置已经是最新的，不用再改」。
+
+真要省时间就跳过配方，自己写 `rime_ice.custom.yaml`（内容见下），
+再 `rime_deployer --build .`。
+
 配方做的事：下载 `wanxiang-lts-zh-hans.gram` 到用户目录，并生成 `rime_ice.custom.yaml`：
 
 ```yaml
@@ -103,6 +122,23 @@ ibus engine rime      # 立刻切过去
 
 `ibus write-cache` 会打印一堆 "Engines exec:... is failed" 的警告，是正常的——
 那些引擎在 `--xml` 模式下退出方式特殊，不影响 rime。
+
+验证：
+
+```bash
+ibus list-engine | grep -iE "^\s+(rime|libpinyin)\b"   # 两个引擎都要在
+ibus engine                                              # 当前引擎
+pgrep -af ibus-engine-rime                               # 引擎进程在跑
+```
+
+插件是否真的被加载（三个插件都是运行时自动加载的）：
+
+```bash
+grep -E "octagram|lua|predict" /proc/$(pgrep -f ibus-engine-rime | head -1)/maps \
+  | awk '{print $6}' | sort -u
+```
+
+要看到 `librime-octagram.so`、`librime-lua.so`、`librime-predict.so` 三个。
 
 ## 目录与文件
 

@@ -15,7 +15,7 @@ claude code 没有"标准安装方式"，下面每种都有人用。**装的时�
 | --- | --- | --- |
 | 原生安装脚本 | 真实路径含 `claude/versions/` | `claude update` |
 | npm | 全局列表里有 `@anthropic-ai/claude-code` | `npm install -g @anthropic-ai/claude-code@latest` |
-| pnpm | 全局列表里有 `@anthropic-ai/claude-code` | `pnpm add -g @anthropic-ai/claude-code@latest` |
+| pnpm | 全局列表里有 `@anthropic-ai/claude-code` | `pnpm add -g @anthropic-ai/claude-code@latest`（pnpm 装要带 `--allow-build`，见下） |
 | bun | 全局列表里有 `@anthropic-ai/claude-code` | `bun install -g @anthropic-ai/claude-code@latest` |
 | brew | `brew list --cask` 里有 `claude-code` 或 `claude-code@latest` | `brew upgrade claude-code` / `brew upgrade claude-code@latest` |
 | winget（Windows） | `winget list` 里有 `Anthropic.ClaudeCode` | `winget upgrade Anthropic.ClaudeCode` |
@@ -38,6 +38,45 @@ npm 系（需要先有 node）：
 pnpm add -g @anthropic-ai/claude-code@latest   # 优先 pnpm
 npm install -g @anthropic-ai/claude-code@latest
 ```
+
+### 原生安装脚本可能撞上区域限制（2026-11 实测）
+
+在某些出口网络下，`https://claude.ai/install.sh` 会 **302 跳到区域不可用页**：
+
+```
+$ curl -sIL https://claude.ai/install.sh
+location: https://claude.com/app-unavailable-in-region#_
+```
+
+脚本地址返回的是一整个 HTML 页面，直接 `| bash` 的结果是：
+
+```
+bash: 行 1: 未预期的记号 "<" 附近有语法错误
+```
+
+**这不是脚本坏了，是服务端按出口 IP 拒绝提供脚本。** 换节点/换网络才能用原生安装。
+这种网络下改用 pnpm 装（见上面的「npm 系」），功能一样：
+
+```bash
+pnpm add -g --config.minimumReleaseAge=0 --allow-build=@anthropic-ai/claude-code \
+  @anthropic-ai/claude-code@latest
+```
+
+### pnpm 装必须带 --allow-build
+
+claude 的 npm 包里 `claude` 只是 shim，真正的原生二进制靠 **postinstall**（`install.cjs`）
+放到正确位置。pnpm 12 默认**不跑依赖的 build 脚本**，装完直接跑会报：
+
+```
+Error: claude native binary not installed.
+
+Either postinstall did not run (--ignore-scripts, some pnpm configs)
+or the platform-native optional dependency was not downloaded
+(--omit=optional).
+```
+
+所以 pnpm 安装时必须显式允许 build 脚本：`--allow-build=@anthropic-ai/claude-code`。
+**别加 `--ignore-scripts`**，加了就会撞上上面这个错。
 
 ## 检测当前安装方式
 
@@ -140,3 +179,17 @@ Claude Code **没有 shell 补全命令**（`claude --help` 里没有 `completio
 - 原生安装脚本在 Fedora 45 上实测正常（2026-11-18，装的是 2.1.327），
   装完 `~/.local/bin/claude` 是软链，指向 `~/.local/share/claude/versions/<版本>`。
 - `claude update` 走的是同一套原生安装流程，更新时不需要 node。
+- **pnpm 方式升级也要带 `--allow-build`**，否则 postinstall 不跑，
+  升级完 `claude --version` 会报「claude native binary not installed」：
+
+  ```bash
+  pnpm add -g --config.minimumReleaseAge=0 --allow-build=@anthropic-ai/claude-code \
+    @anthropic-ai/claude-code@latest
+  ```
+
+- **本机状态（2026-11-21 装）**：**pnpm 装的**（`~/.local/share/pnpm/global/v11`），
+  版本 2.1.330，可执行文件在 `~/.local/share/pnpm/bin/claude`。
+  当初选 pnpm 而不是原生脚本，是因为这台机器的出口网络下
+  `claude.ai/install.sh` 会 302 到区域不可用页。
+  pnpm 装的 claude **没有 shell 补全**，路径靠
+  `~/.oh-my-zsh/custom/conf/project-cli.zsh` 的 PATH 生效。

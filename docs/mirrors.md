@@ -17,6 +17,8 @@
 
 没切的（见文末「保持原样的源」）：Chrome、Tailscale、Ghostty COPR、Fedora openh264、Fedora flatpak OCI 源。
 
+Chrome 走的是官方源 `dl.google.com`（2026-11-21 实测直连可用），备用镜像记在 `docs/chrome.md`。
+
 ## dnf
 
 ### 怎么改的
@@ -125,6 +127,34 @@ flatpak remote-info --user flathub org.mozilla.firefox
 USTC 的 flathub 是 yadex 布局（根目录有 `summary.idx`、`config`、`objects/`），
 flatpak 的 OSTree 能直接读，不需要额外参数。
 
+### 新建 user remote 要带 GPG key（2026-11 实测）
+
+`flatpak remote-modify` **不支持 `--gpg-key`**，新建 remote 用的是 `remote-add`，
+而且 flatpak 1.18 的选项名是 **`--gpg-import`**（不是老版本的 `--gpg-key`）：
+
+```bash
+flatpak remote-add --user --gpg-import=<keyring 文件> flathub https://mirrors.ustc.edu.cn/flathub
+```
+
+keyring 文件可以从 system remote 那里抄（system remote 是现成的）：
+
+```bash
+cp /var/lib/flatpak/repo/flathub.trustedkeys.gpg /tmp/flathub.gpg
+flatpak remote-add --user --gpg-import=/tmp/flathub.gpg flathub https://mirrors.ustc.edu.cn/flathub
+```
+
+不导入 key 的症状是拉摘要时报签名错：
+
+```
+错误： 无法从远程仓库 flathub 加载摘要：Signature made ... using RSA key ID ...
+Can't check signature: public key not found
+```
+
+**注意 `remote-add` 的参数顺序**：写成
+`flatpak remote-add --user --gpg-import=<文件> flathub <URL>` 时，
+实测 **URL 会被吃掉**（remote 被加成 `https://dl.flathub.org/repo/`）。
+稳妥做法是分两步：先 `remote-add`（URL 用镜像），再 `remote-modify --user --url=...` 纠正。
+
 ## 用户级包管理器
 
 ```bash
@@ -162,12 +192,12 @@ EOF
 
 | 源 | 原因 |
 | --- | --- |
-| Chrome（`dl.google.com`） | 国内没有稳定镜像；官方源直连尚可 |
-| Tailscale（`pkgs.tailscale.com`） | 同上 |
+| Chrome（`dl.google.com`） | 国内没有稳定镜像；官方源直连尚可。官方源不通时可换阿里云镜像，见 `docs/chrome.md` |
+| Tailscale（`pkgs.tailscale.com`） | 同上。**但它的仓库 GPG key 没配好**，dnf 会报 `repomd.xml GPG signature verification error: Signing key not found`，首次还会弹交互确认——非交互跑 dnf 时加 `-y` |
 | Ghostty COPR | 同上；COPR 本来就在 `copr.fedorainfracloud.org` |
 | `fedora-cisco-openh264` | 仓库在 `codecs.fedoraproject.org/openh264/`，USTC / 清华 / 阿里都没有镜像；该源 `skip_if_unavailable=True`，拉不到不影响装包 |
 | `fedora`（flatpak OCI 源） | `registry.fedoraproject.org`，没有通用国内镜像 |
-| GitHub Release 下载 | 属于「下载加速」范畴，ghproxy 之类不稳定且影响本项目下载流程，暂不配置 |
+| GitHub Release 下载 | 不走第三方加速站（ghproxy 之类不稳定），走本机的 Clash 本地代理，见下面「GitHub 下载」 |
 | Homebrew | 本机没装 Linux 版 brew；且 USTC 只有 `brew.git` 和 bottles，**没有 homebrew-core**（`https://mirrors.ustc.edu.cn/homebrew-core.git` 404），要用 brew 得配清华的 `/git/homebrew/homebrew-core.git` |
 
 ## 各镜像可用性速查（2026-11 实测）
@@ -180,6 +210,49 @@ EOF
 
 需要 flathub 就只能 USTC；需要 homebrew-core 就只能清华。
 
+## GitHub 下载
+
+本机开着 Clash Verge（fake-ip + TUN 模式），**直连 GitHub 会失败**：
+
+```
+$ curl -sI https://github.com
+curl: (35) TLS connect error: error:0A000126:SSL routines::unexpected eof while reading
+```
+
+DNS 解析出来的 `198.18.x.x` / `2001:2::` 是 fake-ip 地址，
+流量被 TUN 接走后再按 Clash 的规则出站——规则给的是一条当前不通的节点，就表现为 TLS 握手中断。
+
+**走本地代理端口就正常**（Clash 的 mixed 端口）：
+
+```bash
+export https_proxy=http://127.0.0.1:<代理端口> http_proxy=http://127.0.0.1:<代理端口>
+curl -fsSL -o mise.tar.gz https://github.com/jdx/mise/releases/download/<版本>/mise-<版本>-linux-x64.tar.gz
+```
+
+### git 也需要显式配代理
+
+**git 不读 `http_proxy` 环境变量**，只认 `http.proxy` 配置。
+不配的话 `git clone` 会报上面那个 TLS 错：
+
+```bash
+git config --global http.proxy  http://127.0.0.1:<代理端口>
+git config --global https.proxy http://127.0.0.1:<代理端口>
+```
+
+### 节点不稳时要重试
+
+即使走了代理，节点也可能时通时断（同一个 URL 连续几次失败、下一次就成功）。
+下载类操作统一写成带重试的循环，别把一次失败当成「没有这个资源」：
+
+```bash
+for i in 1 2 3 4 5 6; do
+  timeout 300 git clone --depth=1 <url> <dir> && break
+  rm -rf <dir>; sleep 4
+done
+```
+
+大文件下载用 `curl -C -` 断点续传，重试时不会从头下。
+
 ## 回滚
 
 ```bash
@@ -188,4 +261,6 @@ sudo dnf makecache --refresh
 sudo flatpak remote-modify --system --url=https://dl.flathub.org/repo/ flathub
 flatpak remote-modify --user   --url=https://dl.flathub.org/repo/ flathub
 rm ~/.npmrc ~/.config/pip/pip.conf ~/.cargo/config.toml ~/.config/go/env
+git config --global --unset http.proxy
+git config --global --unset https.proxy
 ```

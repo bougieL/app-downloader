@@ -30,6 +30,8 @@ flatpak run com.mattjakeman.ExtensionManager
 
 - 装用户级（`--user`）不用 sudo、不用 polkit 授权。系统已有的 flathub remote 是 system 级，
   `--user` 装之前得先把 flathub 加成用户 remote，否则会报「未发现用于 "flathub" 的远程引用」。
+  本机已经有用户级 flathub remote（`flatpak remotes --user` 里能看到 `flathub` 和 `flathub-1`），
+  直接装即可。
 - 会顺带拉 `org.gnome.Platform/x86_64/51` 运行时，几百 MB，耐心等。
 - 装上之后 GNOME Shell 才会做扩展更新检查：shell 的 `updatesSupported` 要求系统里存在
   `com.mattjakeman.ExtensionManager.desktop` 或 `org.gnome.Extensions.desktop`，两者都没有就完全不检查更新。
@@ -57,6 +59,10 @@ mkdir -p ~/.local/share/gnome-shell/extensions/${uuid}
 curl -fL "https://extensions.gnome.org/download-extension/${uuid}.shell-extension.zip?shell_version=${shell_ver}" \
   -o /tmp/${uuid}.zip
 unzip -oq /tmp/${uuid}.zip -d ~/.local/share/gnome-shell/extensions/${uuid}
+
+# 必须编译 GSettings schema，否则扩展加载失败（EGO 的 zip 不带编译好的 gschemas.compiled）
+[ -d ~/.local/share/gnome-shell/extensions/${uuid}/schemas ] && \
+  glib-compile-schemas ~/.local/share/gnome-shell/extensions/${uuid}/schemas
 
 # 启用：把 uuid 加进 enabled-extensions（已存在的不重复加）
 current=$(gsettings get org.gnome.shell enabled-extensions | tr -d "[]" | tr ',' '\n' | tr -d "' " | awk 'NF')
@@ -173,6 +179,61 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
 - **`/api/v1/extensions/<uuid>/` 详情接口 404**，只有列表接口
   `/api/v1/extensions/?uuid=<uuid>` 可用；要拿版本信息得解析详情页里的 `data-versions`。
 
+- **`extension-info` 的 JSON 里没有可用的 shell 版本字段**（`shell_version` 取到 `null`），
+  判断「支不支持当前 GNOME 版本」要等 zip 解压后看
+  `~/.local/share/gnome-shell/extensions/<uuid>/metadata.json` 的 `shell-version` 数组：
+
+  ```bash
+  python3 -c "import json;print(json.load(open('metadata.json'))['shell-version'])"
+  ```
+
+  `download-extension/<uuid>.shell-extension.zip?shell_version=51` 返回 200 不代表
+  该扩展声明支持 51——EGO 会给最近的一个可用版本。
+
+- **`api/v1/extensions/?uuid=<uuid>` 只能判存在性**（`count` 字段），
+  拿不到版本号；版本号看 `metadata.json` 的 `version`，或看 EGO 详情页的 `data-versions`。
+
+- **Extension Manager 会「悄悄关掉」第三方扩展**：它检查扩展声明的 `shell-version`，
+  不支持当前 GNOME 版本的就禁用掉（GNOME 自带的扩展管理器也是这个行为，
+  换主题文档里提到的「第三方扩展被悄悄关掉」就是这个来源）。
+  本机装的 10 个都声明支持 51，正常不会被禁。
+
+- **手工装的扩展必须自己编译 GSettings schema**：EGO 的 zip 里只有 `.gschema.xml`，
+  **没有编译好的 `gschemas.compiled`**（少数扩展例外，比如 AppIndicator 自带），
+  而 GNOME Shell 不会替扩展编译，直接用
+  `Gio.SettingsSchemaSource.new_from_directory()` 读那个文件，读不到就整个扩展加载失败：
+
+  ```text
+  Extension caffeine@patapon.info: GLib.FileError: 打开文件
+  “.../caffeine@patapon.info/schemas/gschemas.compiled”失败：没有那个文件或目录
+  ```
+
+  装完挨个编译：
+
+  ```bash
+  for d in ~/.local/share/gnome-shell/extensions/*/schemas/; do
+    [ -f "$d/gschemas.compiled" ] || glib-compile-schemas "$d"
+  done
+  ```
+
+  Extension Manager（Flatpak）装的时候会自动做这一步，所以走它装的一般不会踩。
+
+- **加载失败的扩展会「卡死」在 ERROR 状态，reload 救不回来**：GNOME Shell 的
+  `extensionSystem.js` 里 `enableExtension()` 只在状态是 `DISABLED` 时才重新 init，
+  ERROR 状态直接跳过；`disableExtension()` 也只把 ACTIVE 的置为 DISABLED，
+  **ERROR 的原样留着**。所以编译完 schema 后：
+
+  - `gnome-extensions disable/enable <uuid>`：无效，状态还是 ERROR；
+  - `gnome-extensions info <uuid>`：只显示「状态: ERROR」，**不给错误原因**；
+  - `org.gnome.Shell.Extensions.ReloadExtension`：**接口在 D-Bus 上有，实现是空的**，
+    调用报 `Method ReloadExtension is not implemented`；
+  - `org.gnome.Shell.Extensions.GetExtensionErrors <uuid>`：能拿到真实报错文本
+    （`GLib.FileError: ... gschemas.compiled ...`）；
+  - `gnome-shell --replace`：Wayland 下这个版本**不支持**（`未知选项 --replace`）。
+
+  真正能救的只有两条路：**注销重登**（新 shell 会重新扫描并加载），
+  或者 `UninstallExtension` + `InstallRemoteExtension`（后者会弹确认框，要人点）。
+
 - **zip 里是平铺的文件**（`metadata.json`、`extension.js` 直接在根目录），
   解压到 `~/.local/share/gnome-shell/extensions/<uuid>/` 即可，不要多套一层目录。
 
@@ -188,6 +249,12 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
   这几个扩展，删了它们，Classic 会话就没了，登录界面里的「GNOME Classic」选项也会消失。
   用 `--setopt=clean_requirements_on_remove=False` 也拦不住（硬依赖照样删）。
   确实还要用 Classic 就得连那几个扩展一起留着，或者之后重装 `gnome-classic-session`。
+
+  本机 2026-11-21 就是这么把这 5 个 Fedora 自带扩展一次性删掉的，
+  `gnome-classic-session` 和 `gnome-shell-extension-common` 被连带移除，
+  现在 `/usr/share/gnome-shell/extensions/` 是空的。
+  删包后**要注销重登**才真正消失（Wayland 下不能原地重启 shell）；
+  重登前 `gnome-extensions list` 仍会列出已删的扩展（读的是运行中 shell 的内存状态）。
 
 - **Dock 图标上的角标（未读数）没有红底了**，只剩一个白色的数字：
 
@@ -226,33 +293,48 @@ gsettings set org.gnome.shell enabled-extensions "[$new]"
 
   同理，任何扩展目录里被改名的 `stylesheet.css` 都会让该扩展「能用但没样式」。
 
-- **本机状态（2026-11-19 更新）**：Fedora 45 (Workstation) / x86_64 / GNOME Shell 51，
-  扩展装在 `~/.local/share/gnome-shell/extensions/`，共 10 个：
+- **本机状态（2026-11-21）**：Fedora 45 (Workstation) / x86_64 / GNOME Shell 51，
+  扩展装在 `~/.local/share/gnome-shell/extensions/`（用户目录，方式 B），共 10 个：
 
-  | 扩展 | uuid |
-  | --- | --- |
-  | Dash to Dock | `dash-to-dock@micxgx.gmail.com` |
-  | AppIndicator and KStatusNotifierItem Support | `appindicatorsupport@rgcjonas.gmail.com` |
-  | Just Perfection | `just-perfection-desktop@just-perfection` |
-  | Blur my Shell | `blur-my-shell@aunetx` |
-  | Caffeine | `caffeine@patapon.info` |
-  | Clipboard Indicator | `clipboard-indicator@tudmotu.com` |
-  | Vitals | `Vitals@CoreCoding.com` |
-  | GSConnect | `gsconnect@andyholmes.github.io` |
-  | Tiling Assistant | `tiling-assistant@leleat-on-github` |
-  | Rounded Window Corners | `rounded-window-corners@fxgn` |
+  | 扩展 | uuid | 版本 |
+  | --- | --- | --- |
+  | Dash to Dock | `dash-to-dock@micxgx.gmail.com` | 110 |
+  | AppIndicator and KStatusNotifierItem Support | `appindicatorsupport@rgcjonas.gmail.com` | 66 |
+  | Just Perfection | `just-perfection-desktop@just-perfection` | 37 |
+  | Blur my Shell | `blur-my-shell@aunetx` | 78 |
+  | Caffeine | `caffeine@patapon.info` | 61 |
+  | Clipboard Indicator | `clipboard-indicator@tudmotu.com` | 74 |
+  | Vitals | `Vitals@CoreCoding.com` | 86 |
+  | GSConnect | `gsconnect@andyholmes.github.io` | 74 |
+  | Tiling Assistant | `tiling-assistant@leleat-on-github` | 56 |
+  | Rounded Window Corners Reborn | `rounded-window-corners@fxgn` | 26 |
+
+  10 个都是 EGO 下载 zip 手工解压装的（方式 B），uuid 已写进
+  `org.gnome.shell enabled-extensions`，**但运行中的 shell 不会重扫扩展目录**，
+  所以**要注销重登才真正生效**（Wayland 下不能原地重启 shell）。
+  重登前 `gnome-extensions list` 一条都列不出来（系统自带的那几个也卸了），
+  `gnome-extensions enable <uuid>` 会报「扩展不存在」。
+
+  10 个扩展的 `metadata.json` 都声明支持 `51`（`rounded-window-corners@fxgn` 只支持 `51`）。
+
+  **扩展管理器已装**：`com.mattjakeman.ExtensionManager` 0.7.0，Flatpak 用户级安装
+  （`flatpak install --user`），运行时 `org.gnome.Platform/x86_64/51`。
+  桌面项 `~/.local/share/flatpak/exports/share/applications/com.mattjakeman.ExtensionManager.desktop`
+  存在，所以 **GNOME Shell 会检查扩展更新**了（shell 的 `updatesSupported` 要求
+  `com.mattjakeman.ExtensionManager.desktop` 或 `org.gnome.Extensions.desktop` 存在，
+  本机走的是前者；`gnome-shell-extension-app` 那个 GNOME 自带的「扩展」应用没装）。
+
+  启动：`flatpak run com.mattjakeman.ExtensionManager`。
 
   2026-11-21 卸掉了 **User Themes**（`user-theme@gnome-shell-extensions.gcampax.github.com`）：
   试过 Lavanda / WhiteSur / Orchis 三套主题后确认 GNOME 45+ 换主题坑太多，
   详见 [gnome-themes.md](gnome-themes.md)。
 
-  扩展管理器：`com.mattjakeman.ExtensionManager` 0.7.0，Flatpak 用户级安装
-  （`flatpak install --user`），运行时 `org.gnome.Platform/x86_64/51`。
+  2026-11-21 卸掉了 **Fedora 自带的 5 个扩展**（系统包，方式 D）：
+  apps-menu、background-logo、launch-new-instance、places-menu、window-list。
+  连带删掉了 `gnome-classic-session` 和 `gnome-shell-extension-common`，
+  **登录界面里的「GNOME Classic」选项因此消失**（硬依赖，拦不住，见上面「注意」）。
 
-  `enabled-extensions` 里还留着两条没装对应的残留 uuid：
-  `gtk4-ding@smedius.gitlab.com`（本机既没 RPM 包也没用户目录）和
-  `Rounded_Corners@lennart-k`（旧 uuid，已被 `rounded-window-corners@fxgn` 取代）。
-
-  2026-11-19 卸掉了 5 个 Fedora 自带扩展（系统包，方式 D）：
-  apps-menu、background-logo、launch-new-instance、places-menu、window-list，
-  同时连带删掉了 `gnome-classic-session`。
+  `enabled-extensions` 现在就是上面那 10 个用户级 uuid，
+  没有 `background-logo@fedorahosted.org` 这类已删包的残留，
+  也没有 `gtk4-ding@smedius.gitlab.com`、`Rounded_Corners@lennart-k` 这种历史残留。

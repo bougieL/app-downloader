@@ -213,6 +213,11 @@ pnpm 装的话全局 bin 目录（`~/.local/share/pnpm`）也要进。本机统�
 - **本机状态（2026-11-12 核实）**：pnpm 装的（`~/.local/share/pnpm/global/v11`），
   从 2.180.0 → 2.181.0 → 2.182.0 → 2.183.0。中间 2.181.0 那次是 `pnpm add -g --ignore-scripts`（不带闸门参数）
   装的，2.182.0 是加 `--config.minimumReleaseAge=0` 装的。
+- **本机状态（2026-11-21 重装）**：仍是 **pnpm 装的**，版本 **2.185.0**，
+  可执行文件在 `~/.local/share/pnpm/bin/codebuddy`。
+  安装命令：`pnpm add -g --ignore-scripts --config.minimumReleaseAge=0
+  @tencent-ai/codebuddy-code@latest`。
+  codebuddy 没有 shell 补全，PATH 靠 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 生效。
 - **`pnpm update -g <包>` 不会升到 npm 上的 `latest`**（2026-11-12 实测）：
   跑 `pnpm update -g @tencent-ai/codebuddy-code` 之后版本仍是 2.181.0，
   而 npm 上 `latest` 已经是 2.183.0。改用 `pnpm add -g <包>@latest` 才升到 2.183.0。

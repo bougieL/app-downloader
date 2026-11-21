@@ -118,28 +118,38 @@ hc update --from <二进制>    # 换成指定的构建
 
 ### 终端字体
 
-`~/.config/herdr-app/settings.json` 里的 `font` / `font_size` / `font_weight`
+`~/.config/herdr-app/settings.json` 里的 `font` / `font_size` / `font_weight` / `ui_font`
 控制终端字体，改完**即时生效，不用重启**：
 
 ```json
 {
-  "font": "Maple Mono Normal CN",
+  "font": "Maple Mono CN",
   "font_size": 14,
-  "font_weight": 400
+  "font_weight": 400,
+  "ui_font": "Maple Mono CN"
 }
 ```
 
-本机用 Maple Mono Normal CN 的原因和系统级 fontconfig 配置见 [docs/fonts.md](fonts.md)。
+- `font` / `font_size` / `font_weight`：终端里的文字；
+- `ui_font`：面板（mods）的文字，本机也用 Maple Mono CN，界面和终端同一个字体。
+
+本机用 Maple Mono CN 的原因和系统级 fontconfig 配置见 [docs/fonts.md](fonts.md)。
 
 几个坑：
 
 - **只有布局没自己指定字体时，`settings.json` 才生效**。`main` 布局不指定，用 `settings.json` 的；
+  `terminals` 布局只定 `font_size: 15`（字体仍继承 `settings.json`）；
   `win98` 布局自带像素字体（`PxPlus IBM VGA 8x16`），不跟随。
 - **新装的字体要重启 App 才认**。App 只在启动时扫描字体目录，
   装了新字体只改 `settings.json` 不重启的话不会生效。
 - **Herdr 没有单独的中文字体设置项**，终端字体只能整体指定，中文靠字体自带字形
   （所以要选自带 CJK 字形的字体，见 [docs/fonts.md](fonts.md)）。
 - `font_weight` 默认 500（Medium），400 是 Regular，700 是 Bold。
+- `font_ligatures` 默认关闭（编程连字），要开设 `true`。Maple Mono 带连字那套
+  （`MapleMono-CN-*`，不带连字的是 `MapleMonoNL-CN-*`）可以显示 `=>`、`!=` 之类连字。
+- **字体家族名 v7.9 起改过名**：老版本是 `Maple Mono Normal CN`，现在是 `Maple Mono CN`，
+  写错名字会静默回退到 JetBrains Mono，看起来像「设置没生效」。
+  用 `fc-match "Maple Mono CN"` 核对。
 
 ## 注意
 

@@ -38,7 +38,6 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [MMX CLI](docs/mmx-cli.md) | MiniMax-AI/cli | CLI |
 | [pnpm](docs/pnpm.md) | pnpm/pnpm | CLI（包管理器） |
 | [微信 Linux 版](docs/wechat.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
-| [飞书 Feishu](docs/feishu.md) | 官方站点分发（非 GitHub Release） | 桌面客户端 |
 | [CodeBuddy Code](docs/codebuddy.md) | codebuddy/codebuddy-code | CLI |
 | [Oh My Zsh](docs/oh-my-zsh.md) | ohmyzsh/ohmyzsh | Shell 框架 |
 | [PhotoCraft](docs/photocraft.md) | storytold/photocraft | 桌面客户端 |
@@ -50,10 +49,11 @@ Claude 会先在 `docs/` 里找对应应用；没有就搜索官方仓库并补�
 | [VS Code](docs/vscode.md) | microsoft/vscode | 桌面客户端 |
 | [Convey](docs/convey.md) | gitlab.gnome.org/donnybeelo/convey | 桌面客户端（邮件） |
 | [GNOME 扩展](docs/gnome-extensions.md) | extensions.gnome.org（非 GitHub Release） | 桌面增强 |
+| [GNOME Tweaks](docs/gnome-tweaks.md) | Fedora 官方包（dnf） | 桌面设置 |
 
 非应用类的文档：
 
-- [系统字体](docs/fonts.md)：全机统一的等宽/中文字体方案（Maple Mono Normal CN）、
+- [系统字体](docs/fonts.md)：全机统一的等宽/中文字体方案（Maple Mono CN）、
   各应用的字体设置与 fontconfig 配置。
 - [GNOME 换主题](docs/gnome-themes.md)：GNOME 45+ 换主题的机制与踩坑记录。
   **结论是本机不换**，保持原版 Adwaita；真要动外观优先改 icon / cursor / 壁纸。

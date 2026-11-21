@@ -89,9 +89,21 @@ pnpm store path              # 全局 store 路径
 
 ## 全局包目录
 
-pnpm 的全局包和全局命令在 `~/.local/share/pnpm/`（`pnpm root -g` / `pnpm bin -g`），
-这个目录已经在 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 的 `path` 里，
+pnpm 的全局包在 `~/.local/share/pnpm/global/`（`pnpm root -g`），
+**全局命令（可执行文件）在 `~/.local/share/pnpm/bin/`**（`pnpm bin -g`）——
+这两个目录不是同一个，`bin/` 里才是 `claude`、`codex`、`mmx`、`codebuddy` 这些命令。
+
+`~/.local/share/pnpm/bin` 已经在 `~/.oh-my-zsh/custom/conf/project-cli.zsh` 的 `path` 里，
 所以全局装的命令在 zsh 下可以直接用。
+
+不装 pnpm 也能用，但 pnpm 会直接报：
+
+```
+Error: ERR_PNPM_GLOBAL_BIN_DIR_NOT_IN_PATH
+  × The configured global bin directory ".../pnpm/bin" is not in PATH
+```
+
+要么把那个目录加进 PATH，要么跑一次 `pnpm setup`（它会改 shell 配置）。
 
 ## zsh 支持
 
@@ -117,3 +129,42 @@ pnpm completion zsh
   要跑项目脚本时项目里通常还是得自己 `mise use --node <版本>`。
 - pnpm 的全局 store 默认在 `~/.local/share/pnpm/store`，
   装包多时占空间，`pnpm store prune` 可以清理没被引用的包。
+
+- **pnpm 12 默认不跑依赖的 build 脚本**（2026-11 实测）：
+  `claude`、`codex` 这类包的原生二进制靠 postinstall 就位，
+  不显式允许就装出一个「命令在、跑起来报错」的状态：
+
+  ```
+  Error: claude native binary not installed.
+  Either postinstall did not run (--ignore-scripts, some pnpm configs) ...
+  ```
+
+  装这类包要加 `--allow-build=<包名>`：
+
+  ```bash
+  pnpm add -g --config.minimumReleaseAge=0 --allow-build=@anthropic-ai/claude-code \
+    @anthropic-ai/claude-code@latest
+  ```
+
+  **别用 `--ignore-scripts`**：加了 postinstall 一定不跑，必挂。
+
+- **pnpm 12 的发布时间闸门参数只能写成 `--config.minimumReleaseAge=0`**：
+  `--min-release-age=0` / `--minimum-release-age=0` 都会被拒绝（报 `Unknown option`）。
+  不带这个参数时 `pnpm add -g <包>@latest` 会**静默停在旧版本**，
+  装完记得核对版本号。
+
+- **本机状态（2026-11-21 装）**：**mise 装的** `pnpm@12.21.0`，
+  PATH 上是 `~/.local/share/mise/shims/pnpm`，
+  全局包目录 `~/.local/share/pnpm/global/v11`，全局命令目录 `~/.local/share/pnpm/bin`。
+  registry 指向 `https://registry.npmmirror.com/`（见 `docs/mirrors.md`）。
+
+- **npm 全局列表里的 `npm` 和 `corepack` 是 Node.js 自带的，不是用户装的包**
+  （就在 node 安装目录的 `lib/node_modules` 里，和 node 本体一起发布）。
+  `npm ls -g --depth=0` 会把它们列出来，别误当成「还有 npm 装的全局包要迁到 pnpm」——
+  它们迁不了也不该迁，node 本体不归 pnpm 管。
+  本机（2026-11-21）已把用户装的全局包全部迁到 pnpm，
+  npm 全局只剩 `npm` 和 `corepack` 这两个自带的。
+
+- **pnpm 12 的全局目录是哈希布局**：`~/.local/share/pnpm/global/v11/` 下不是
+  `node_modules/<包名>`，而是一堆 `<hash>-<hash>-0` 目录 + 一个 `pnpm-workspace.yaml`，
+  包名对不上目录名。查全局包用 `pnpm ls -g --depth=0`，别去猜目录名。

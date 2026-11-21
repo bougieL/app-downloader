@@ -26,19 +26,18 @@ Maple Mono 不在 Fedora 仓库里，从 GitHub Releases 下 zip（不用 7z）�
 
 ```bash
 # 认得「CN」的资产才是带中文字形的版本
-curl -LO https://github.com/subframe7536/maple-font/releases/download/v7.9/MapleMonoNormal-CN-unhinted.zip
-unzip -q MapleMonoNormal-CN-unhinted.zip -d extracted
+curl -LO https://github.com/subframe7536/maple-font/releases/download/v7.9/MapleMono-CN-unhinted.zip
+unzip -q MapleMono-CN-unhinted.zip -d extracted
 mkdir -p ~/.local/share/fonts/maple-mono-cn
 cp extracted/*.ttf ~/.local/share/fonts/maple-mono-cn/
 fc-cache -f
 ```
 
-资产命名规律（`MapleMonoNormal-CN-unhinted.zip` 为例）：
+资产命名规律（`MapleMono-CN-unhinted.zip` 为例）：
 
 | 片段 | 含义 |
 | --- | --- |
 | `MapleMono` / `MapleMonoNL` | NL = 不带编程连字（No Ligatures） |
-| `Normal` | 正常字形（不加这个是「圆角」风格） |
 | `CN` | 带中文字形（**没有这个就没有中文**） |
 | `NF` | 带 Nerd Font 图标 |
 | `unhinted` | 不做 hinting，终端里更清晰 |
@@ -49,6 +48,30 @@ fc-cache -f
 **注意**：新装的字体需要**重启对应应用**才会被识别。
 Herdr App 只在启动时扫描字体目录，改完 `settings.json` 不重启的话新字体不生效。
 
+### 资产名和家族名都改过（2026-11 实测）
+
+老版本的资产叫 `MapleMonoNormal-CN-unhinted.zip`，字体家族名是
+`Maple Mono Normal CN`（Normal 是字形风格的名字）。**v7.9 起这套命名改了**：
+
+| | 老版本 | 新版本（v7.9+） |
+| --- | --- | --- |
+| 资产名 | `MapleMonoNormal-CN-unhinted.zip` | `MapleMono-CN-unhinted.zip` |
+| 家族名 | `Maple Mono Normal CN` | `Maple Mono CN` |
+| 圆角风格 | `MapleMonoRound-CN-...` | `MapleMonoRounded-CN-...` |
+
+所以老配置里的字体名在新版字体上**匹配不上**，`fc-match "Maple Mono Normal CN"`
+会回退到别的字体，看起来像「字体没装上」。核对家族名：
+
+```bash
+fc-list --format "%{family}\n" ~/.local/share/fonts/maple-mono-cn/*.ttf | tr ',' '\n' | sort -u
+```
+
+装完确认：
+
+```bash
+fc-match "Maple Mono CN"     # 应命中 MapleMono-CN-Regular.ttf
+```
+
 ## 各应用的设置
 
 ### Herdr App
@@ -57,15 +80,20 @@ Herdr App 只在启动时扫描字体目录，改完 `settings.json` 不重启�
 
 ```json
 {
-  "font": "Maple Mono Normal CN",
+  "font": "Maple Mono CN",
   "font_size": 14,
-  "font_weight": 400
+  "font_weight": 400,
+  "ui_font": "Maple Mono CN"
 }
 ```
 
 - `font` / `font_size` / `font_weight` 只在布局没自己指定时才生效；
-  `main` 布局不指定，用 `settings.json` 的；`win98` 布局自带像素字体，不受影响。
+  `main` 布局不指定，用 `settings.json` 的；`terminals` 布局只定 `font_size: 15`
+  （字体仍继承 `settings.json`）；`win98` 布局自带像素字体，不受影响。
+- `ui_font` 是面板（mods）的字体，本机也设成 Maple Mono CN，界面和终端统一。
 - `font_weight` 默认 500（Medium），400 是 Regular。
+- `font_ligatures` 默认关闭，Maple Mono 带连字那套（`MapleMono-CN-*`，
+  不带连字的是 `MapleMonoNL-CN-*`）可以设 `true` 开启。
 - Herdr **没有单独的中文字体设置项**，终端字体只能整体指定。
 
 ### Zed
@@ -74,10 +102,10 @@ Herdr App 只在启动时扫描字体目录，改完 `settings.json` 不重启�
 
 ```json
 {
-  "ui_font_family": "Maple Mono Normal CN",
-  "buffer_font_family": "Maple Mono Normal CN",
+  "ui_font_family": "Maple Mono CN",
+  "buffer_font_family": "Maple Mono CN",
   "terminal": {
-    "font_family": "Maple Mono Normal CN"
+    "font_family": "Maple Mono CN"
   }
 }
 ```
@@ -104,16 +132,16 @@ GNOME Shell 的候选窗口由主题 CSS 写死了 `font-family: monospace`
 <fontconfig>
   <match target="font">
     <test name="family"><string>Noto Sans CJK SC</string></test>
-    <edit name="family" mode="assign" binding="strong"><string>Maple Mono Normal CN</string></edit>
+    <edit name="family" mode="assign" binding="strong"><string>Maple Mono CN</string></edit>
   </match>
   <match target="font">
     <test name="family"><string>Noto Sans Mono CJK SC</string></test>
-    <edit name="family" mode="assign" binding="strong"><string>Maple Mono Normal CN</string></edit>
+    <edit name="family" mode="assign" binding="strong"><string>Maple Mono CN</string></edit>
   </match>
 </fontconfig>
 ```
 
-做法是**把字体库里的 CJK 字体改名成 Maple Mono Normal CN**，于是任何「主字体缺中文字形」
+做法是**把字体库里的 CJK 字体改名成 Maple Mono CN**，于是任何「主字体缺中文字形」
 的逐字回退都落到 Maple 上，而拉丁字母仍由各自主字体渲染。
 
 改完 `fc-cache -f` 刷新。
@@ -125,13 +153,40 @@ GNOME Shell 的候选窗口由主题 CSS 写死了 `font-family: monospace`
 ```xml
 <match target="pattern">
   <test name="family"><string>Adwaita Sans</string></test>
-  <edit name="family" mode="append" binding="strong"><string>Maple Mono Normal CN</string></edit>
+  <edit name="family" mode="append" binding="strong"><string>Maple Mono CN</string></edit>
 </match>
 ```
 
 不行。`append` 会让 `sans-serif` / `monospace` 这类通用族也优先命中 Maple，
 **拉丁字母跟着变成等宽**，整个桌面观感全变（GNOME 界面、菜单、应用标题都变）。
 改字体家族名（`target="font"` + `mode="assign"`）才是只影响缺字回退的做法。
+
+### 副作用：通用族也跟着变成 Maple（2026-11 实测）
+
+`assign` 改的是**家族名**，不是「加一个 fallback」。原来的 CJK 字体是
+`sans-serif` / `monospace` 通用族的首选候选，改名之后这两个通用族的首选就变成了
+Maple：
+
+```
+改动前： fc-match sans-serif → "Noto Sans CJK SC"
+改动后： fc-match sans-serif → "Maple Mono CN"
+```
+
+`monospace` 变 Maple 是**想要的**（终端、ibus 候选词都走它）。
+`sans-serif` 也跟着变，意味着**直接写 `font-family: sans-serif` 的界面，拉丁字母会变等宽**。
+GNOME Shell 自己写的是 `Adwaita Sans`，不受影响；影响的是那些直接用通用族的应用。
+
+想只动 `monospace`、不动 `sans-serif`，就只保留 `Noto Sans Mono CJK SC` 那一条规则，
+删掉 `Noto Sans CJK SC` 那条。
+
+对比检查（临时移走用户配置再测，`FONTCONFIG_FILE=` 挡不住用户配置，见下）：
+
+```bash
+mv ~/.config/fontconfig/fonts.conf /tmp/fonts.conf.bak && fc-cache -f
+fc-match sans-serif; fc-match monospace
+mv /tmp/fonts.conf.bak ~/.config/fontconfig/fonts.conf && fc-cache -f
+fc-match sans-serif; fc-match monospace
+```
 
 ## 验证
 
@@ -161,7 +216,7 @@ for fam in ['Adwaita Sans', 'monospace', 'sans-serif']:
             break
 ```
 
-期望输出：中文那一行是 `Maple Mono Normal CN`，英文那行保持原字体（`Adwaita Sans` 等）。
+期望输出：中文那一行是 `Maple Mono CN`，英文那行保持原字体（`Adwaita Sans` 等）。
 
 **测的时候要注意**：临时改 fontconfig 做对比实验时，用户配置
 `~/.config/fontconfig/fonts.conf` 会被 `/etc/fonts/fonts.conf` include 进来，

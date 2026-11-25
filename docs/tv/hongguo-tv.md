@@ -5,9 +5,9 @@
 
 | 包名 | 仓库 | 版本 | 说明 |
 | --- | --- | --- | --- |
-| `rocks.aston.hongguotv` | [aston314/hongguo-tv-releases](https://github.com/aston314/hongguo-tv-releases) | 0.2.155 | 933★，最活跃，多端（TV/webOS/Mac/Win/Linux） |
-| `com.hongguotv.nativeapp` | [jycao2/hongguoTV](https://github.com/jycao2/hongguoTV) | 0.28.0+50 | 112★，Kotlin 原生仅 1.9MB，支持 WebDAV/NAS 本地库与类 TVBox 自加源；release 发在 [hongguoTV-updates](https://github.com/jycao2/hongguoTV-updates) |
-| `dev.miniact.nativeapp` | [xy6176/miniact-tv](https://github.com/xy6176/miniact-tv) | 1.2.9.2 | 无广告，遥控追剧/选集/续播，pre-release |
+| `rocks.aston.hongguotv` | [aston314/hongguo-tv-releases](https://github.com/aston314/hongguo-tv-releases) | 0.2.182 | 933★，最活跃，多端（TV/webOS/Mac/Win/Linux） |
+| `com.hongguotv.nativeapp` | [jycao2/hongguoTV](https://github.com/jycao2/hongguoTV) | 0.35.0+65 | 112★，Kotlin 原生仅 1.9MB，支持 WebDAV/NAS 本地库与类 TVBox 自加源；release 发在 [hongguoTV-updates](https://github.com/jycao2/hongguoTV-updates) |
+| `dev.miniact.nativeapp` | [xy6176/miniact-tv](https://github.com/xy6176/miniact-tv) | 1.2.0（versionCode 70） | 无广告，遥控追剧/选集/续播；正式版已改成 v1.1 / v1.2 这种版本号 |
 
 三个包名互不相同，可共存。
 
@@ -68,5 +68,35 @@ adb install -r tmp/hongguo-tv/MiniAct-<ver>.apk
 
 ## 注意
 
+- **电视睡着时 adb 连不上，别误判成「没开无线调试」**：电视休眠后 adbd 不监听，
+  但 mDNS 里 `_adb._tcp` 记录还在（还带着旧 IP 和端口），
+  此时 `ip neigh` 显示 INCOMPLETE、`adb connect` 报 `failed to connect` 或
+  `No route to host`。**先唤醒电视再连**，连上之后就会正常。
+- **用 mDNS 找电视的 IP**（不用问人）：Android 无线调试广播的服务名就叫 `Android.local`：
+
+  ```bash
+  avahi-browse -rpt _adb._tcp        # = ...;Android.local;192.0.2.10;5555
+  avahi-resolve -4 -n Android.local  # 设备名也能查
+  ```
+
+  端口是 5555（之前用 `adb tcpip 5555` 固化的）；无线调试的随机端口则只广播 `_adb-tls-*`。
+- **adb 要自己装**：Fedora 上是 `sudo dnf install android-tools`（给 `adb` / `fastboot`），
+  装完第一次 `adb connect` 会生成 `~/.android/adbkey`。
+  电视上没授权过这台电脑时，电视会弹「允许 USB 调试吗？」，要在电视上点允许。
+- **MiniAct 的版本号跳变，别按 versionName 判新旧**：v1.2.9.2（versionCode 68，pre-release，
+  2026-11-07）之后上游把正式版改成 **v1.2（versionCode 70，2026-11-17）** 和 v1.1（69）。
+  按版本号大小看会以为 1.2.9.2 更新，装上去报
+  `INSTALL_FAILED_VERSION_DOWNGRADE: Downgrade detected: Update version code 68 is older than current 70`。
+  **看 versionCode**：`adb shell dumpsys package dev.miniact.nativeapp | grep versionCode`。
 - 内容源走红果官方接口，账号/播放数据与手机版红果不互通，遇版权下架属正常。
 - 第三方客户端，GitHub 不校验 APK，安装风险自担。
+
+## 本机状态（2026-11-25 更新）
+
+- 电视：小米 MiTV-MFTR0，Android 14，无线调试开着（端口 5555）。
+- 更新前装的是 0.2.177 / 0.33.1+62 / 1.2.0，
+  更新后：**0.2.182 / 0.35.0+65 / 1.2.0（已是最新）**。
+  两个更新的包都是 `adb install -r` 成功，数据保留；MiniAct 无需动。
+- 下载的 APK 放在 `tmp/hongguo-tv/`（按 AGENTS.md，临时文件放项目里的 `tmp/`），
+  SHA256 全部用 release 里的 `SHA256SUMS` / `SHA256SUMS.txt` 校验过。
+- 查版本：`adb shell dumpsys package <包名> | grep -E 'versionName|versionCode'`。

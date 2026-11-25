@@ -5,11 +5,26 @@
 
 用 Rust + [GPUI](https://gpui.rs/) 复刻的网易云音乐桌面客户端，支持扫码登录、推荐页、个人歌单、播放队列、心动模式、歌词与评论等。目前处于开发中，**只有 nightly 版本**（tag 形如 `nightly-<版本>-<日期>`，GitHub 上标记为 pre-release），主要在 macOS 上开发验证，其他平台未验证。
 
+## 每日 nightly
+
+- 每天 21:00 有定时任务把上游 `AMagicPear/NetEase-Music-GPUI` 的更新合并进这个 fork，
+  触发 Actions 构建并发布一个 nightly（tag `nightly-<版本>-<日期>`；同一天多次发布会加 `-2`、`-3` 后缀）。
+- 查最新的 nightly 用 `gh api repos/bougieL/netease-music-gpui/releases --jq '.[].tag_name'`，
+  不要用 `releases/latest`。
+- 上游当天没有新提交、且上一次 nightly 已经包含全部改动时，不会发新的 nightly，
+  上一次 nightly 仍然是最新版本。
+
 ## 资产与安装（按平台）
 
 ### Linux
 
-资产：`netease-music-gpui-linux-x64.tar.gz`（目前只有 x64）。
+资产：`netease-music-gpui-linux-x64.tar.gz`（目前只有 x64）、`netease-music-gpui-<版本>-1.x86_64.rpm`（RPM 包）。
+
+RPM 直接装就行，桌面入口和图标都带在里面（需要系统提供 `alsa-lib` 和 `vulkan-loader`）：
+
+```bash
+sudo dnf install ./netease-music-gpui-0.1.1-1.x86_64.rpm
+```
 
 解压出 `netease-music-gpui/` 目录，里面是可执行文件 `netease-music-gpui` 和 `assets/`（`icons/`、`images/`、`font/`）。**必须整个目录一起放**，只复制可执行文件会缺资源。
 

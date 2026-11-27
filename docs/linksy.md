@@ -45,6 +45,49 @@ Debian 系用 `sudo apt install ./linksy-common_<版本>_amd64.deb ./linksy_<版
 资产是 `linksy-<版本>-apk`（arm64）/ `linksy-<版本>-armv7.apk` / `linksy-<版本>.apk`（通用）。
 装好后在电脑和手机两边打开 Linksy，两边显示同一个配对码即可连上。
 
+## 能不能像苹果那样在电脑上直接操作手机
+
+分两种情况：
+
+- **USB 线连接时可以**：桌面端 0.11 起，手机插着数据线时，电脑端通过 Android Open Accessory（AOA 2.0）
+  给手机接一个虚拟触摸屏（外部 `SOURCE_TOUCHSCREEN`），电脑上的点击和键盘就转发进手机。
+  手机端不需要开发者选项，也不需要无障碍权限。手机会显示「Controlled from <computer>」。
+- **走 Wi-Fi 时不行**：往手机注入触摸需要 `AccessibilityService`，而 Android 的反欺诈机制会拦截
+  侧载 APK 声明这类权限的应用（上游 v0.1.3/0.1.4 就是因此发不出去），所以手机端直接回
+  `decline_unsupported`，上游文档写明「不打算在没有线缆的情况下支持」。
+  Wi-Fi 下只能**看**手机屏幕（手机共享给电脑），不能点。
+
+  这不是协议限制（协议里 `control` 会话早就定义好，两端代码都跑得通），
+  也不是技术上做不到，而是 Android 的权限模型挡着：
+
+  | 路线 | 为什么 Linksy 不走 |
+  | --- | --- |
+  | 无障碍服务 `AccessibilityService` | 侧载 APK 声明无障碍会被安装拦截，且 Android 13+ 还要手动「允许受限设置」；上游 ROADMAP 把它列进「Not planned」，issue #8 已被维护者关闭 |
+  | root + uinput | 原理和线缆上的 AOA 虚拟触摸屏一样，但要 root |
+  | ADB over Wi-Fi | scrcpy 的路子，要开开发者选项 + USB 调试 + `adb tcpip` |
+
+  反方向（手机当触控板操作**电脑**的屏幕）Wi-Fi 下是可以的，桌面端需要 RemoteDesktop portal，GNOME 有。
+
+  线缆方案也不是所有机型都灵：上游说「works on some phones」，
+  适配范围在 issue #5 里跟踪。
+
+Wi-Fi 下仍然能做的（相当于苹果连续互通的一部分）：手机通知/短信/邮件汇总到电脑的 Inbox，
+部分应用支持在电脑里直接回复；文件双向传、剪贴板电脑→手机；响铃和查找手机；媒体播放控制；
+手机当摄像头、麦克风、第二显示器；在手机上用电脑的终端。
+
+Wi-Fi 下往手机**打字**也只有土办法：Send Clipboard 整段粘贴，不支持实时输入、退格和快捷键。
+上游 issue #107 提议做一个「Linksy Keyboard」输入法（IME 不需要无障碍权限），
+维护者暂时没接受但把 issue 留着了。
+
+用线缆控制时注意两点：
+
+- Android 15 的屏幕共享保护会让状态栏和通知栏在画面里全黑，任何应用都绕不过去，
+  需要在手机上开「开发者选项 › 关闭屏幕共享保护」后重新共享。
+- 手机共享屏幕始终是整屏（Android 14+ 否则默认预选「单个应用」，黑边）。
+
+电脑端的桌面环境不影响用线控制：触摸事件是在 Linksy 自己的窗口里捕获再转发的，
+不需要系统级的虚拟输入设备，也不需要 RemoteDesktop portal，GNOME/Wayland 下同样可用。
+
 ## 命令行入口
 
 Flatpak 里的命令不直接暴露在 PATH 上，包了一个包装脚本到 `~/.local/bin/linksy`：

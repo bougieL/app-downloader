@@ -5,8 +5,8 @@
 
 | 包名 | 仓库 | 版本 | 说明 |
 | --- | --- | --- | --- |
-| `rocks.aston.hongguotv` | [aston314/hongguo-tv-releases](https://github.com/aston314/hongguo-tv-releases) | 0.2.182 | 933★，最活跃，多端（TV/webOS/Mac/Win/Linux） |
-| `com.hongguotv.nativeapp` | [jycao2/hongguoTV](https://github.com/jycao2/hongguoTV) | 0.35.0+65 | 112★，Kotlin 原生仅 1.9MB，支持 WebDAV/NAS 本地库与类 TVBox 自加源；release 发在 [hongguoTV-updates](https://github.com/jycao2/hongguoTV-updates) |
+| `rocks.aston.hongguotv` | [aston314/hongguo-tv-releases](https://github.com/aston314/hongguo-tv-releases) | 0.2.185 | 933★，最活跃，多端（TV/webOS/Mac/Win/Linux） |
+| `com.hongguotv.nativeapp` | [jycao2/hongguoTV](https://github.com/jycao2/hongguoTV) | 0.37.0+67 | 112★，Kotlin 原生仅 1.9MB，支持 WebDAV/NAS 本地库与类 TVBox 自加源；release 发在 [hongguoTV-updates](https://github.com/jycao2/hongguoTV-updates) |
 | `dev.miniact.nativeapp` | [xy6176/miniact-tv](https://github.com/xy6176/miniact-tv) | 1.2.0（versionCode 70） | 无广告，遥控追剧/选集/续播；正式版已改成 v1.1 / v1.2 这种版本号 |
 
 三个包名互不相同，可共存。
@@ -72,6 +72,8 @@ adb install -r tmp/hongguo-tv/MiniAct-<ver>.apk
   但 mDNS 里 `_adb._tcp` 记录还在（还带着旧 IP 和端口），
   此时 `ip neigh` 显示 INCOMPLETE、`adb connect` 报 `failed to connect` 或
   `No route to host`。**先唤醒电视再连**，连上之后就会正常。
+- **电视的 IP 会变，别写死**：DHCP 续租/重连就换（本机实测 2026-11-25 是 `192.168.8.114`，
+  11-28 变成 `192.168.8.107`）。每次先查再连。
 - **用 mDNS 找电视的 IP**（不用问人）：Android 无线调试广播的服务名就叫 `Android.local`：
 
   ```bash
@@ -91,12 +93,12 @@ adb install -r tmp/hongguo-tv/MiniAct-<ver>.apk
 - 内容源走红果官方接口，账号/播放数据与手机版红果不互通，遇版权下架属正常。
 - 第三方客户端，GitHub 不校验 APK，安装风险自担。
 
-## 本机状态（2026-11-25 更新）
+## 本机状态（2026-11-28 更新）
 
 - 电视：小米 MiTV-MFTR0，Android 14，无线调试开着（端口 5555）。
-- 更新前装的是 0.2.177 / 0.33.1+62 / 1.2.0，
-  更新后：**0.2.182 / 0.35.0+65 / 1.2.0（已是最新）**。
-  两个更新的包都是 `adb install -r` 成功，数据保留；MiniAct 无需动。
+- 更新前装的是 0.2.182 / 0.35.0+65 / 1.2.0，
+  更新后：**0.2.185 / 0.37.0+67 / 1.2.0（MiniAct 无新版本）**。
+  两个更新的包都是 `adb install -r` 成功，数据保留；aston314 版装完已启动验证。
 - 下载的 APK 放在 `tmp/hongguo-tv/`（按 AGENTS.md，临时文件放项目里的 `tmp/`），
   SHA256 全部用 release 里的 `SHA256SUMS` / `SHA256SUMS.txt` 校验过。
 - 查版本：`adb shell dumpsys package <包名> | grep -E 'versionName|versionCode'`。
